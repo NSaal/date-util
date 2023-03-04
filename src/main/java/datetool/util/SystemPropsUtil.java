@@ -96,46 +96,4 @@ public class SystemPropsUtil {
 		return BooleanUtil.toBoolean(value);
 	}
 
-	/**
-	 * 获得int类型值
-	 *
-	 * @param key          键
-	 * @param defaultValue 默认值
-	 * @return 值
-	 */
-	public static int getInt(String key, int defaultValue) {
-		return Convert.toInt(get(key), defaultValue);
-	}
-
-	/**
-	 * 获得long类型值
-	 *
-	 * @param key          键
-	 * @param defaultValue 默认值
-	 * @return 值
-	 */
-	public static long getLong(String key, long defaultValue) {
-		return Convert.toLong(get(key), defaultValue);
-	}
-
-	/**
-	 * @return 属性列表
-	 */
-	public static Properties getProps() {
-		return System.getProperties();
-	}
-
-	/**
-	 * 设置系统属性，value为{@code null}表示移除此属性
-	 *
-	 * @param key   属性名
-	 * @param value 属性值，{@code null}表示移除此属性
-	 */
-	public static void set(String key, String value) {
-		if (null == value) {
-			System.clearProperty(key);
-		} else {
-			System.setProperty(key, value);
-		}
-	}
 }

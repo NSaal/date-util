@@ -1,7 +1,5 @@
 package datetool.lang;
 
-import datetool.thread.lock.NoLock;
-
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -59,27 +57,6 @@ public class Range<T> implements Iterable<T>, Iterator<T>, Serializable {
 	/**
 	 * 构造
 	 *
-	 * @param start   起始对象（包括）
-	 * @param stepper 步进
-	 */
-	public Range(T start, Stepper<T> stepper) {
-		this(start, null, stepper);
-	}
-
-	/**
-	 * 构造
-	 *
-	 * @param start   起始对象（包含）
-	 * @param end     结束对象（包含）
-	 * @param stepper 步进
-	 */
-	public Range(T start, T end, Stepper<T> stepper) {
-		this(start, end, stepper, true, true);
-	}
-
-	/**
-	 * 构造
-	 *
 	 * @param start          起始对象
 	 * @param end            结束对象
 	 * @param stepper        步进
@@ -94,17 +71,6 @@ public class Range<T> implements Iterable<T>, Iterator<T>, Serializable {
 		this.next = safeStep(this.start);
 		this.includeStart = isIncludeStart;
 		this.includeEnd = isIncludeEnd;
-	}
-
-	/**
-	 * 禁用锁，调用此方法后不再使用锁保护
-	 *
-	 * @return this
-	 * @since 4.3.1
-	 */
-	public Range<T> disableLock() {
-		this.lock = new NoLock();
-		return this;
 	}
 
 	@Override
@@ -184,22 +150,6 @@ public class Range<T> implements Iterable<T>, Iterator<T>, Serializable {
 
 	@Override
 	public Iterator<T> iterator() {
-		return this;
-	}
-
-	/**
-	 * 重置Range
-	 *
-	 * @return this
-	 */
-	public Range<T> reset() {
-		lock.lock();
-		try {
-			this.index = 0;
-			this.next = safeStep(this.start);
-		} finally {
-			lock.unlock();
-		}
 		return this;
 	}
 

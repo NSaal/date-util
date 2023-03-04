@@ -1,6 +1,5 @@
 package datetool.map;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -35,40 +34,5 @@ public class SafeConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
 		super(initialCapacity);
 	}
 
-	/**
-	 * 构造
-	 *
-	 * @param m 初始键值对
-	 */
-	public SafeConcurrentHashMap(Map<? extends K, ? extends V> m) {
-		super(m);
-	}
 
-	/**
-	 * 构造
-	 *
-	 * @param initialCapacity 初始容量
-	 * @param loadFactor      增长系数
-	 */
-	public SafeConcurrentHashMap(int initialCapacity, float loadFactor) {
-		super(initialCapacity, loadFactor);
-	}
-
-	/**
-	 * 构造
-	 *
-	 * @param initialCapacity  初始容量
-	 * @param loadFactor       增长系数
-	 * @param concurrencyLevel 并发级别，即Segment的个数
-	 */
-	public SafeConcurrentHashMap(int initialCapacity,
-                                 float loadFactor, int concurrencyLevel) {
-		super(initialCapacity, loadFactor, concurrencyLevel);
-	}
-	// endregion == 构造 ==
-
-	@Override
-	public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-		return MapUtil.computeIfAbsent(this, key, mappingFunction);
-	}
 }

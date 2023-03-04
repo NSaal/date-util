@@ -1,7 +1,5 @@
 package datetool.lang;
 
-import datetool.clone.CloneSupport;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -13,7 +11,7 @@ import java.util.Objects;
  * @author looly
  * @since 4.1.5
  */
-public class Pair<K, V> extends CloneSupport<Pair<K, V>> implements Serializable {
+public class Pair<K, V>  implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	protected K key;
