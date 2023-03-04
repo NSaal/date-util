@@ -2,11 +2,11 @@ package datetool.date.format;
 
 import datetool.date.DateUtil;
 import datetool.lang.Assert;
-import datetool.map.SafeConcurrentHashMap;
 
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -25,12 +25,12 @@ public class GlobalCustomFormat {
 	private static final Map<CharSequence, Function<CharSequence, Date>> parserMap;
 
 	static {
-		formatterMap = new SafeConcurrentHashMap<>();
-		parserMap = new SafeConcurrentHashMap<>();
+		formatterMap = new ConcurrentHashMap<>();
+		parserMap = new ConcurrentHashMap<>();
 
 		// Hutool预设的几种自定义格式
-		putFormatter(FORMAT_SECONDS, (date) -> String.valueOf(Math.floorDiv(date.getTime(), 1000)));
-		putParser(FORMAT_SECONDS, (dateStr) -> DateUtil.date(Math.multiplyExact(Long.parseLong(dateStr.toString()), 1000)));
+		putFormatter(FORMAT_SECONDS, (date) -> String.valueOf(date.getTime()/ 1000));
+		putParser(FORMAT_SECONDS, (dateStr) -> DateUtil.date(Long.parseLong(dateStr.toString())* 1000));
 
 		putFormatter(FORMAT_MILLISECONDS, (date) -> String.valueOf(date.getTime()));
 		putParser(FORMAT_MILLISECONDS, (dateStr) -> DateUtil.date(Long.parseLong(dateStr.toString())));

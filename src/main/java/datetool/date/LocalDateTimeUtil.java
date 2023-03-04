@@ -1,9 +1,9 @@
 package datetool.date;
 
 import datetool.date.format.GlobalCustomFormat;
+import datetool.text.CharSequenceUtil;
 import datetool.util.ObjectUtil;
 import datetool.util.ReUtil;
-import datetool.util.StrUtil;
 
 import java.time.*;
 import java.time.chrono.ChronoLocalDateTime;
@@ -231,7 +231,7 @@ public class LocalDateTimeUtil {
 	 * @return {@link LocalDateTime}
 	 */
 	public static LocalDateTime parse(CharSequence text, DateTimeFormatter formatter) {
-		if (StrUtil.isBlank(text)) {
+		if (CharSequenceUtil.isBlank(text)) {
 			return null;
 		}
 		if (null == formatter) {
@@ -249,7 +249,7 @@ public class LocalDateTimeUtil {
 	 * @return {@link LocalDateTime}
 	 */
 	public static LocalDateTime parse(CharSequence text, String format) {
-		if (StrUtil.isBlank(text)) {
+		if (CharSequenceUtil.isBlank(text)) {
 			return null;
 		}
 
@@ -258,16 +258,16 @@ public class LocalDateTimeUtil {
 		}
 
 		DateTimeFormatter formatter = null;
-		if (StrUtil.isNotBlank(format)) {
+		if (CharSequenceUtil.isNotBlank(format)) {
 			// 修复yyyyMMddHHmmssSSS格式不能解析的问题
 			// fix issue#1082
 			//see https://stackoverflow.com/questions/22588051/is-java-time-failing-to-parse-fraction-of-second
 			// jdk8 bug at: https://bugs.openjdk.java.net/browse/JDK-8031085
-			if (StrUtil.startWithIgnoreEquals(format, DatePattern.PURE_DATETIME_PATTERN)) {
-				final String fraction = StrUtil.removePrefix(format, DatePattern.PURE_DATETIME_PATTERN);
+			if (CharSequenceUtil.startWithIgnoreEquals(format, DatePattern.PURE_DATETIME_PATTERN)) {
+				final String fraction = CharSequenceUtil.removePrefix(format, DatePattern.PURE_DATETIME_PATTERN);
 				if (ReUtil.isMatch("[S]{1,2}", fraction)) {
 					//将yyyyMMddHHmmssS、yyyyMMddHHmmssSS的日期统一替换为yyyyMMddHHmmssSSS格式，用0补
-					text += StrUtil.repeat('0', 3 - fraction.length());
+					text += CharSequenceUtil.repeat('0', 3 - fraction.length());
 				}
 				formatter = new DateTimeFormatterBuilder()
 						.appendPattern(DatePattern.PURE_DATETIME_PATTERN)

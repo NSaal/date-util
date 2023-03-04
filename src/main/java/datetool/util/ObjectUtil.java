@@ -1,15 +1,7 @@
 package datetool.util;
 
-import datetool.collection.IterUtil;
-import datetool.comparator.CompareUtil;
-import datetool.exceptions.UtilException;
-import datetool.map.MapUtil;
-
-import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
 /**
@@ -18,27 +10,6 @@ import java.util.function.Supplier;
  * @author Looly
  */
 public class ObjectUtil {
-
-	/**
-	 * 比较两个对象是否相等。<br>
-	 * 相同的条件有两个，满足其一即可：<br>
-	 * <ol>
-	 * <li>obj1 == null &amp;&amp; obj2 == null</li>
-	 * <li>obj1.equals(obj2)</li>
-	 * <li>如果是BigDecimal比较，0 == obj1.compareTo(obj2)</li>
-	 * </ol>
-	 *
-	 * @param obj1 对象1
-	 * @param obj2 对象2
-	 * @return 是否相等
-	 * @see Objects#equals(Object, Object)
-	 */
-	public static boolean equal(Object obj1, Object obj2) {
-		if (obj1 instanceof BigDecimal && obj2 instanceof BigDecimal) {
-			return NumberUtil.equals((BigDecimal) obj1, (BigDecimal) obj2);
-		}
-		return Objects.equals(obj1, obj2);
-	}
 
 	/**
 	 * 检查对象是否为null<br>
@@ -55,42 +26,6 @@ public class ObjectUtil {
 	public static boolean isNull(Object obj) {
 		//noinspection ConstantConditions
 		return null == obj || obj.equals(null);
-	}
-
-	/**
-	 * 判断指定对象是否为空，支持：
-	 *
-	 * <pre>
-	 * 1. CharSequence
-	 * 2. Map
-	 * 3. Iterable
-	 * 4. Iterator
-	 * 5. Array
-	 * </pre>
-	 *
-	 * @param obj 被判断的对象
-	 * @return 是否为空，如果类型不支持，返回false
-	 * @since 4.5.7
-	 */
-	@SuppressWarnings("rawtypes")
-	public static boolean isEmpty(Object obj) {
-		if (null == obj) {
-			return true;
-		}
-
-		if (obj instanceof CharSequence) {
-			return StrUtil.isEmpty((CharSequence) obj);
-		} else if (obj instanceof Map) {
-			return MapUtil.isEmpty((Map) obj);
-		} else if (obj instanceof Iterable) {
-			return IterUtil.isEmpty((Iterable) obj);
-		} else if (obj instanceof Iterator) {
-			return IterUtil.isEmpty((Iterator) obj);
-		} else if (ArrayUtil.isArray(obj)) {
-			return ArrayUtil.isEmpty(obj);
-		}
-
-		return false;
 	}
 
 	/**
@@ -141,29 +76,20 @@ public class ObjectUtil {
 	 * @param obj 被克隆对象
 	 * @return 克隆后的对象
 	 */
-	public static <T> T clone(T obj) {
-		T result = ArrayUtil.clone(obj);
-		if (null == result) {
-			if (obj instanceof Cloneable) {
-				result = ReflectUtil.invoke(obj, "clone");
-			} else {
-				result = cloneByStream(obj);
+	public static <T> T clone(T obj)  {
+		try {
+			T result = ArrayUtil.clone(obj);
+			if (null == result) {
+				if (obj instanceof Cloneable) {
+					Method cloneMethod = obj.getClass().getDeclaredMethod("clone");
+					cloneMethod.setAccessible(true);
+					result = (T) cloneMethod.invoke(obj);
+				}
 			}
+			return result;
+		} catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+			throw new RuntimeException(e);
 		}
-		return result;
-	}
-
-	/**
-	 * 序列化后拷贝流的方式克隆<br>
-	 * 对象必须实现Serializable接口
-	 *
-	 * @param <T> 对象类型
-	 * @param obj 被克隆对象
-	 * @return 克隆后的对象
-	 * @throws UtilException IO异常和ClassNotFoundException封装
-	 */
-	public static <T> T cloneByStream(T obj) {
-		return SerializeUtil.clone(obj);
 	}
 
 }

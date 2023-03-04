@@ -1,7 +1,8 @@
 package datetool.lang;
 
-import datetool.map.WeakConcurrentMap;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
 /**
@@ -15,13 +16,13 @@ public class PatternPool {
 	/**
 	 * 时间正则
 	 */
-	public static final Pattern TIME = Pattern.compile(RegexPool.TIME);
+	public static final Pattern TIME = Pattern.compile("\\d{1,2}:\\d{1,2}(:\\d{1,2})?");
 
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
 	 * Pattern池
 	 */
-	private static final WeakConcurrentMap<RegexWithFlag, Pattern> POOL = new WeakConcurrentMap<>();
+	private static final ConcurrentMap<RegexWithFlag, Pattern> POOL = new ConcurrentHashMap<>();
 
 	/**
 	 * 先从Pattern池中查找正则对应的{@link Pattern}，找不到则编译正则表达式并入池。

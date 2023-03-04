@@ -1,7 +1,7 @@
 package datetool.date;
 
 import datetool.date.format.GlobalCustomFormat;
-import datetool.util.StrUtil;
+import datetool.text.CharSequenceUtil;
 
 import java.time.Month;
 import java.time.*;
@@ -97,7 +97,7 @@ public class TemporalAccessorUtil extends TemporalUtil{
 			return GlobalCustomFormat.format(time, format);
 		}
 
-		final DateTimeFormatter formatter = StrUtil.isBlank(format)
+		final DateTimeFormatter formatter = CharSequenceUtil.isBlank(format)
 				? null : DateTimeFormatter.ofPattern(format);
 
 		return format(time, formatter);

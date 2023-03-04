@@ -1,6 +1,7 @@
 package datetool.util;
 
 import datetool.lang.Assert;
+import datetool.text.CharSequenceUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -108,7 +109,7 @@ public class NumberUtil {
 	 * @return 是否为数字
 	 */
 	public static boolean isNumber(CharSequence str) {
-		if (StrUtil.isBlank(str)) {
+		if (CharSequenceUtil.isBlank(str)) {
 			return false;
 		}
 		char[] chars = str.toString().toCharArray();
@@ -264,7 +265,7 @@ public class NumberUtil {
 	 * @since 4.0.9
 	 */
 	public static BigDecimal toBigDecimal(String numberStr) {
-		if (StrUtil.isBlank(numberStr)) {
+		if (CharSequenceUtil.isBlank(numberStr)) {
 			return BigDecimal.ZERO;
 		}
 
@@ -285,45 +286,6 @@ public class NumberUtil {
 
 
 	/**
-	 * 解析转换数字字符串为int型数字，规则如下：
-	 *
-	 * <pre>
-	 * 1、0x开头的视为16进制数字
-	 * 2、0开头的忽略开头的0
-	 * 3、其它情况按照10进制转换
-	 * 4、空串返回0
-	 * 5、.123形式返回0（按照小于0的小数对待）
-	 * 6、123.56截取小数点之前的数字，忽略小数部分
-	 * </pre>
-	 *
-	 * @param number 数字，支持0x开头、0开头和普通十进制
-	 * @return int
-	 * @throws NumberFormatException 数字格式异常
-	 * @since 4.1.4
-	 */
-	public static int parseInt(String number) throws NumberFormatException {
-		if (StrUtil.isBlank(number)) {
-			return 0;
-		}
-
-		if(StrUtil.containsIgnoreCase(number, "E")){
-			// 科学计数法忽略支持，科学计数法一般用于表示非常小和非常大的数字，这类数字转换为int后精度丢失，没有意义。
-			throw new NumberFormatException(StrUtil.format("Unsupported int format: [{}]", number));
-		}
-
-		if (StrUtil.startWithIgnoreCase(number, "0x")) {
-			// 0x04表示16进制数
-			return Integer.parseInt(number.substring(2), 16);
-		}
-
-		try {
-			return Integer.parseInt(number);
-		} catch (NumberFormatException e) {
-			return parseNumber(number).intValue();
-		}
-	}
-
-	/**
 	 * 将指定字符串转换为{@link Number} 对象<br>
 	 * 此方法不支持科学计数法
 	 *
@@ -333,7 +295,7 @@ public class NumberUtil {
 	 * @since 4.1.15
 	 */
 	public static Number parseNumber(String numberStr) throws NumberFormatException {
-		if (StrUtil.startWithIgnoreCase(numberStr, "0x")) {
+		if (CharSequenceUtil.startWithIgnoreCase(numberStr, "0x")) {
 			// 0x04表示16进制数
 			return Long.parseLong(numberStr.substring(2), 16);
 		}

@@ -1,6 +1,6 @@
 package datetool.date;
 
-import datetool.util.StrUtil;
+import datetool.text.CharSequenceUtil;
 
 import java.io.Serializable;
 
@@ -95,7 +95,7 @@ public class BetweenFormatter implements Serializable {
 			}
 		}
 
-		if (StrUtil.isEmpty(sb)) {
+		if (CharSequenceUtil.isEmpty(sb)) {
 			sb.append(0).append(this.level.name);
 		}
 

@@ -1,13 +1,12 @@
 package datetool.date.format;
 
-import datetool.map.SafeConcurrentHashMap;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -438,7 +437,7 @@ public class FastDateParser extends AbstractDateBasic implements DateParser {
 	private static ConcurrentMap<Locale, Strategy> getCache(final int field) {
 		synchronized (CACHES) {
 			if (CACHES[field] == null) {
-				CACHES[field] = new SafeConcurrentHashMap<>(3);
+				CACHES[field] = new ConcurrentHashMap<>(3);
 			}
 			return CACHES[field];
 		}

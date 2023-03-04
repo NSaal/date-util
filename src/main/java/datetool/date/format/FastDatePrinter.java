@@ -1,12 +1,12 @@
 package datetool.date.format;
 
 import datetool.date.DateException;
-import datetool.map.SafeConcurrentHashMap;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.DateFormatSymbols;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -1044,7 +1044,7 @@ public class FastDatePrinter extends AbstractDateBasic implements DatePrinter {
 
 	// -----------------------------------------------------------------------
 
-	private static final ConcurrentMap<TimeZoneDisplayKey, String> C_TIME_ZONE_DISPLAY_CACHE = new SafeConcurrentHashMap<>(7);
+	private static final ConcurrentMap<TimeZoneDisplayKey, String> C_TIME_ZONE_DISPLAY_CACHE = new ConcurrentHashMap<>(7);
 
 	/**
 	 * <p>

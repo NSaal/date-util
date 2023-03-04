@@ -1,14 +1,13 @@
 package datetool.date.format;
 
 import datetool.lang.Assert;
-import datetool.lang.Tuple;
-import datetool.map.SafeConcurrentHashMap;
 
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -24,9 +23,9 @@ abstract class FormatCache<F extends Format> {
 	 */
 	static final int NONE = -1;
 
-	private final ConcurrentMap<Tuple, F> cInstanceCache = new SafeConcurrentHashMap<>(7);
+	private final ConcurrentMap<Object, F> cInstanceCache = new ConcurrentHashMap<>(7);
 
-	private static final ConcurrentMap<Tuple, String> C_DATE_TIME_INSTANCE_CACHE = new SafeConcurrentHashMap<>(7);
+	private static final ConcurrentMap<Object, String> C_DATE_TIME_INSTANCE_CACHE = new ConcurrentHashMap<>(7);
 
 	/**
 	 * 使用默认的pattern、timezone和locale获得缓存中的实例
@@ -54,7 +53,7 @@ abstract class FormatCache<F extends Format> {
 		if (locale == null) {
 			locale = Locale.getDefault();
 		}
-		final Tuple key = new Tuple(pattern, timeZone, locale);
+		final Object[] key = new Object[]{pattern, timeZone, locale};
 		F format = cInstanceCache.get(key);
 		if (format == null) {
 			format = createInstance(pattern, timeZone, locale);
@@ -145,7 +144,7 @@ abstract class FormatCache<F extends Format> {
 	 */
 	// package protected, for access from test code; do not make public or protected
 	static String getPatternForStyle(final Integer dateStyle, final Integer timeStyle, final Locale locale) {
-		final Tuple key = new Tuple(dateStyle, timeStyle, locale);
+		final Object[] key = new Object[]{dateStyle, timeStyle, locale};
 
 		String pattern = C_DATE_TIME_INSTANCE_CACHE.get(key);
 		if (pattern == null) {

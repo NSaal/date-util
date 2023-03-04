@@ -1,6 +1,7 @@
 package datetool.util;
 
 import datetool.lang.PatternPool;
+import datetool.text.CharSequenceUtil;
 
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -78,7 +79,7 @@ public class ReUtil {
 			return false;
 		}
 
-		if (StrUtil.isEmpty(regex)) {
+		if (CharSequenceUtil.isEmpty(regex)) {
 			// 正则不存在则为全匹配
 			return true;
 		}

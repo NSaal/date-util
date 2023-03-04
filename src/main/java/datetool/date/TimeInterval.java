@@ -1,6 +1,6 @@
 package datetool.date;
 
-import datetool.util.StrUtil;
+import datetool.text.CharSequenceUtil;
 
 /**
  * 计时器<br>
@@ -10,7 +10,7 @@ import datetool.util.StrUtil;
  */
 public class TimeInterval extends GroupTimeInterval {
 	private static final long serialVersionUID = 1L;
-	private static final String DEFAULT_ID = StrUtil.EMPTY;
+	private static final String DEFAULT_ID = CharSequenceUtil.EMPTY;
 
 	/**
 	 * 构造，默认使用毫秒计数

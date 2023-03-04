@@ -5,9 +5,8 @@ import datetool.date.format.DatePrinter;
 import datetool.date.format.FastDateFormat;
 import datetool.date.format.GlobalCustomFormat;
 import datetool.lang.Assert;
+import datetool.text.CharSequenceUtil;
 import datetool.util.ObjectUtil;
-import datetool.util.StrUtil;
-import datetool.util.SystemPropsUtil;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -311,7 +310,7 @@ public class DateTime extends Date {
 	 * @see DatePattern
 	 */
 	public DateTime(CharSequence dateStr, DateParser dateParser) {
-		this(dateStr, dateParser, SystemPropsUtil.getBoolean(SystemPropsUtil.HUTOOL_DATE_LENIENT, true));
+		this(dateStr, dateParser, true);
 	}
 
 	/**
@@ -1093,7 +1092,7 @@ public class DateTime extends Date {
 			} else {
 				pattern = dateFormat.toString();
 			}
-			throw new DateException(StrUtil.format("Parse [{}] with format [{}] error!", dateStr, pattern), e);
+			throw new DateException(CharSequenceUtil.format("Parse [{}] with format [{}] error!", dateStr, pattern), e);
 		}
 	}
 

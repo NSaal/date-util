@@ -1,5 +1,7 @@
 package datetool.util;
 
+import datetool.text.CharSequenceUtil;
+
 import java.lang.reflect.Array;
 
 /**
@@ -85,7 +87,7 @@ public class ArrayUtil extends PrimitiveArrayUtil {
 	public static int indexOfIgnoreCase(CharSequence[] array, CharSequence value) {
 		if (null != array) {
 			for (int i = 0; i < array.length; i++) {
-				if (StrUtil.equalsIgnoreCase(array[i], value)) {
+				if (CharSequenceUtil.equalsIgnoreCase(array[i], value)) {
 					return i;
 				}
 			}

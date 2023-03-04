@@ -1,6 +1,6 @@
 package datetool.lang;
 
-import datetool.util.StrUtil;
+import datetool.text.CharSequenceUtil;
 
 import java.util.function.Supplier;
 
@@ -48,7 +48,7 @@ public class Assert {
 	 * @throws IllegalArgumentException if expression is {@code false}
 	 */
 	public static void isFalse(boolean expression, String errorMsgTemplate, Object... params) throws IllegalArgumentException {
-		isFalse(expression, () -> new IllegalArgumentException(StrUtil.format(errorMsgTemplate, params)));
+		isFalse(expression, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
 	}
 
 	// ----------------------------------------------------------------------------------------------------------- Check not null
@@ -93,7 +93,7 @@ public class Assert {
 	 * @throws IllegalArgumentException if the object is {@code null}
 	 */
 	public static <T> T notNull(T object, String errorMsgTemplate, Object... params) throws IllegalArgumentException {
-		return notNull(object, () -> new IllegalArgumentException(StrUtil.format(errorMsgTemplate, params)));
+		return notNull(object, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
 	}
 
 	/**
@@ -130,10 +130,10 @@ public class Assert {
 	 * @param errorMsgSupplier 错误抛出异常附带的消息生产接口
 	 * @return 非空字符串
 	 * @throws X 被检查字符串为空白
-	 * @see StrUtil#isNotBlank(CharSequence)
+	 * @see CharSequenceUtil#isNotBlank(CharSequence)
 	 */
 	public static <T extends CharSequence, X extends Throwable> T notBlank(T text, Supplier<X> errorMsgSupplier) throws X {
-		if (StrUtil.isBlank(text)) {
+		if (CharSequenceUtil.isBlank(text)) {
 			throw errorMsgSupplier.get();
 		}
 		return text;
@@ -152,10 +152,10 @@ public class Assert {
 	 * @param params           参数
 	 * @return 非空字符串
 	 * @throws IllegalArgumentException 被检查字符串为空白
-	 * @see StrUtil#isNotBlank(CharSequence)
+	 * @see CharSequenceUtil#isNotBlank(CharSequence)
 	 */
 	public static <T extends CharSequence> T notBlank(T text, String errorMsgTemplate, Object... params) throws IllegalArgumentException {
-		return notBlank(text, () -> new IllegalArgumentException(StrUtil.format(errorMsgTemplate, params)));
+		return notBlank(text, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
 	}
 
 	/**
@@ -169,7 +169,7 @@ public class Assert {
 	 * @param text 被检查字符串
 	 * @return 非空字符串
 	 * @throws IllegalArgumentException 被检查字符串为空白
-	 * @see StrUtil#isNotBlank(CharSequence)
+	 * @see CharSequenceUtil#isNotBlank(CharSequence)
 	 */
 	public static <T extends CharSequence> T notBlank(T text) throws IllegalArgumentException {
 		return notBlank(text, "[Assertion failed] - this String argument must have text; it must not be null, empty, or blank");
@@ -207,7 +207,7 @@ public class Assert {
 	 * @since 5.7.15
 	 */
 	public static int checkBetween(int value, int min, int max, String errorMsgTemplate, Object... params) {
-		return checkBetween(value, min, max, () -> new IllegalArgumentException(StrUtil.format(errorMsgTemplate, params)));
+		return checkBetween(value, min, max, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
 	}
 
 	/**
@@ -242,7 +242,7 @@ public class Assert {
 	 * @since 5.7.15
 	 */
 	public static double checkBetween(double value, double min, double max, String errorMsgTemplate, Object... params) {
-		return checkBetween(value, min, max, () -> new IllegalArgumentException(StrUtil.format(errorMsgTemplate, params)));
+		return checkBetween(value, min, max, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
 	}
 
 }
