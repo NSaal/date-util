@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.text.CharSequenceUtil;
-
 /**
  * 工具类异常
  *
@@ -19,7 +17,7 @@ public class DateException extends RuntimeException {
         if (null == e) {
             message = "null";
         } else {
-            message = CharSequenceUtil.format("{}: {}", e.getClass().getSimpleName(), e.getMessage());
+            message = DateUtil.format("{}: {}", e.getClass().getSimpleName(), e.getMessage());
         }
         return message;
     }
@@ -29,7 +27,7 @@ public class DateException extends RuntimeException {
     }
 
     public DateException(String messageTemplate, Object... params) {
-        super(CharSequenceUtil.format(messageTemplate, params));
+        super(DateUtil.format(messageTemplate, params));
     }
 
     public DateException(String message, Throwable throwable) {

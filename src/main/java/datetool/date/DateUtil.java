@@ -2,7 +2,6 @@ package datetool.date;
 
 import datetool.date.format.*;
 import datetool.lang.Assert;
-import datetool.text.CharSequenceUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -790,7 +789,7 @@ public class DateUtil extends CalendarUtil {
      * @since 3.1.1
      */
     public static DateTime parseTimeToday(CharSequence timeString) {
-        timeString = CharSequenceUtil.format("{} {}", today(), timeString);
+        timeString = format("{} {}", today(), timeString);
         int count = 0;
         if (timeString.length() != 0) {
             int contentLength = timeString.length();
@@ -1177,7 +1176,13 @@ public class DateUtil extends CalendarUtil {
                         // yyyy-MM-dd HH:mm:ss.SSS 或者 yyyy-MM-dd HH:mm:ss.SSSSSS
                         if (length1 - indexOfDot > 4) {
                             // 类似yyyy-MM-dd HH:mm:ss.SSSSSS，采取截断操作
-                            dateStr = CharSequenceUtil.subPre(dateStr, indexOfDot + 4);
+                            int fromIndexInclude = 0;
+                            int toIndexExclude1 = indexOfDot + 4;
+                            int len1 = dateStr.length();
+                            if (toIndexExclude1 > len1) {
+                                toIndexExclude1 = len1;
+                            }
+                            dateStr =dateStr.substring(fromIndexInclude, toIndexExclude1);
                         }
                         return parse(dateStr, DatePattern.NORM_DATETIME_MS_FORMAT);
                     }
@@ -2375,7 +2380,13 @@ public class DateUtil extends CalendarUtil {
             result = datePart;
         } else {
             if (datePart.endsWith("日")) {
-                result = CharSequenceUtil.subPre(datePart, datePart.length() - 1);// 截取前半段
+                int fromIndexInclude = 0;
+                int toIndexExclude1 = datePart.length() - 1;
+                if (fromIndexInclude == toIndexExclude1) {
+                    result = "";
+                } else {
+                    result =  datePart.substring(fromIndexInclude, toIndexExclude1);
+                }
             } else {
                 result = datePart;
             }
@@ -2388,7 +2399,13 @@ public class DateUtil extends CalendarUtil {
             String timePart = dateAndTime.get(1).replaceAll("[时分秒]", ":");
             if (timePart.length() != 0) {
                 if (timePart.endsWith(":")) {
-                    timePart = CharSequenceUtil.subPre(timePart, timePart.length() - 1);// 截取前半段
+                    int fromIndexInclude = 0;
+                    int toIndexExclude1 = timePart.length() - 1;
+                    if (fromIndexInclude == toIndexExclude1) {
+                        timePart = "";
+                    } else {
+                        timePart = timePart.substring(fromIndexInclude, toIndexExclude1);
+                    }
                 }
             }
             //将ISO8601中的逗号替换为.
@@ -2430,7 +2447,19 @@ public class DateUtil extends CalendarUtil {
                     result1 = dateStr.substring(pos1 + before.length());
                 }
             }
-            String millOrNaco = CharSequenceUtil.subPre(result1, 3);
+            String millOrNaco;
+            int fromIndexInclude = 0;
+            int toIndexExclude1 = 3;
+            if (result1 == null || result1.length() == 0) {
+                millOrNaco = result1;
+            } else {
+                int len = ((CharSequence) result1).length();
+                if (toIndexExclude1 > len) {
+                    toIndexExclude1 = len;
+                }
+                millOrNaco = result1.substring(fromIndexInclude, toIndexExclude1);
+            }
+
             String result = "";
             if (dateStr == null || dateStr.length() == 0 || before == null) {
                 result = dateStr;
@@ -2459,7 +2488,19 @@ public class DateUtil extends CalendarUtil {
                 }
             }
         }
-        String millOrNaco = CharSequenceUtil.subPre(subBetween, 3);
+        String millOrNaco;
+        int fromIndexInclude = 0;
+        int toIndexExclude1 = 3;
+        if (subBetween == null ||  subBetween.length() == 0) {
+            millOrNaco = subBetween;
+        } else {
+            int len = ((CharSequence) subBetween).length();
+            if (toIndexExclude1 > len) {
+                toIndexExclude1 = len;
+            }
+            millOrNaco =  subBetween.substring(fromIndexInclude, toIndexExclude1);
+        }
+
         String result = "";
         if (dateStr == null || dateStr.length() == 0 || before == null) {
             result = dateStr;
@@ -2487,6 +2528,96 @@ public class DateUtil extends CalendarUtil {
         return result
                 + before
                 + millOrNaco + after + result1;
+    }
+
+    /**
+     * 格式化文本, {} 表示占位符<br>
+     * 此方法只是简单将占位符 {} 按照顺序替换为参数<br>
+     * 如果想输出 {} 使用 \\转义 { 即可，如果想输出 {} 之前的 \ 使用双转义符 \\\\ 即可<br>
+     * 例：<br>
+     * 通常使用：format("this is {} for {}", "a", "b") =》 this is a for b<br>
+     * 转义{}： format("this is \\{} for {}", "a", "b") =》 this is {} for a<br>
+     * 转义\： format("this is \\\\{} for {}", "a", "b") =》 this is \a for b<br>
+     *
+     * @param template 文本模板，被替换的部分用 {} 表示，如果模板为null，返回"null"
+     * @param params   参数值
+     * @return 格式化后的文本，如果模板为null，返回"null"
+     */
+    public static String format(CharSequence template, Object... params) {
+        if (null == template) {
+            return "null";
+        }
+        boolean isBlank = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (template.length() != 0) {// 遍历字符
+            for (int i = 0; i < template.length(); i++) {
+                if (!Character.isWhitespace(template.charAt(i))) {
+                    isBlank = false;
+                    break;
+                }
+            }
+        }
+        if (params == null || params.length == 0 || isBlank) {
+            return template.toString();
+        }
+        String strPattern = template.toString();
+        boolean isBlank2 = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (strPattern.length() != 0) {// 遍历字符
+            for (int i = 0; i < strPattern.length(); i++) {
+                if (!Character.isWhitespace(strPattern.charAt(i))) {
+                    isBlank2 = false;
+                    break;
+                }
+            }
+        }
+        if (isBlank2) {
+            return strPattern;
+        }
+        final int strPatternLength = strPattern.length();
+        final int placeHolderLength = "{}".length();
+        List<String> strings = Arrays.stream(params).map(Objects::toString).collect(Collectors.toList());
+        // 初始化定义好的长度以获得更好的性能
+        final StringBuilder sbuf = new StringBuilder(strPatternLength + 50);
+
+        int handledPosition = 0;// 记录已经处理到的位置
+        int delimIndex;// 占位符所在位置
+        for (int argIndex = 0; argIndex < strings.size(); argIndex++) {
+            delimIndex = strPattern.indexOf("{}", handledPosition);
+            if (delimIndex == -1) {// 剩余部分无占位符
+                if (handledPosition == 0) { // 不带占位符的模板直接返回
+                    return strPattern;
+                }
+                // 字符串模板剩余部分不再包含占位符，加入剩余部分后返回结果
+                sbuf.append(strPattern, handledPosition, strPatternLength);
+                return sbuf.toString();
+            }
+
+            // 转义符
+            if (delimIndex > 0 && strPattern.charAt(delimIndex - 1) == '\\') {// 转义符
+                if (delimIndex > 1 && strPattern.charAt(delimIndex - 2) == '\\') {// 双转义符
+                    // 转义符之前还有一个转义符，占位符依旧有效
+                    sbuf.append(strPattern, handledPosition, delimIndex - 1);
+                    sbuf.append(strings.get(argIndex));
+                    handledPosition = delimIndex + placeHolderLength;
+                } else {
+                    // 占位符被转义
+                    argIndex--;
+                    sbuf.append(strPattern, handledPosition, delimIndex - 1);
+                    sbuf.append('{');
+                    handledPosition = delimIndex + 1;
+                }
+            } else {// 正常占位符
+                sbuf.append(strPattern, handledPosition, delimIndex);
+                sbuf.append(strings.get(argIndex));
+                handledPosition = delimIndex + placeHolderLength;
+            }
+        }
+
+        // 加入最后一个占位符后所有的字符
+        sbuf.append(strPattern, handledPosition, strPatternLength);
+
+        return sbuf.toString();
     }
 
     /**

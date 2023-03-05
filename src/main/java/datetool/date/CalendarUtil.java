@@ -3,7 +3,6 @@ package datetool.date;
 import datetool.date.format.DateParser;
 import datetool.date.format.FastDateParser;
 import datetool.date.format.GlobalCustomFormat;
-import datetool.lang.Assert;
 
 import java.text.ParsePosition;
 import java.time.Instant;
@@ -607,12 +606,12 @@ public class CalendarUtil {
 
         // 月
         int month = calendar.get(Calendar.MONTH) + 1;
-        result.append(formatThousand(month, false));
+        result.append(formatThousand(month));
         result.append('月');
 
         // 日
         int day = calendar.get(Calendar.DAY_OF_MONTH);
-        result.append(formatThousand(day, false));
+        result.append(formatThousand(day));
         result.append('日');
 
         // 只替换年月日，时分秒中零不需要替换
@@ -624,15 +623,15 @@ public class CalendarUtil {
         if (withTime) {
             // 时
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
-            result.append(formatThousand(hour, false));
+            result.append(formatThousand(hour));
             result.append('时');
             // 分
             int minute = calendar.get(Calendar.MINUTE);
-            result.append(formatThousand(minute, false));
+            result.append(formatThousand(minute));
             result.append('分');
             // 秒
             int second = calendar.get(Calendar.SECOND);
-            result.append(formatThousand(second, false));
+            result.append(formatThousand(second));
             result.append('秒');
         }
 
@@ -782,8 +781,10 @@ public class CalendarUtil {
         return parser.parse(null == str ? null : str.toString(), new ParsePosition(0), calendar) ? calendar : null;
     }
 
-    private static String formatThousand(int amount, boolean isUseTraditional) {
-        Assert.checkBetween(amount, -999, 999, "Number support only: (-999 ~ 999)！");
+    private static String formatThousand(int amount) {
+        if (amount < -999 || amount > 999) {
+            throw new IllegalArgumentException(DateUtil.format("Number support only: (-999 ~ 999)！"));
+        }
 
         String chinese;
         if (amount == 0) {
@@ -804,10 +805,10 @@ public class CalendarUtil {
                 } else { // 取到的数字不是 0
                     char result;
                     result = new char[]{'零', '一', '壹', '二', '贰', '三', '叁', '四', '肆', '五', '伍',
-                            '六', '陆', '七', '柒', '八', '捌', '九', '玖'}[digit * 2 - (isUseTraditional ? 0 : 1)];
+                            '六', '陆', '七', '柒', '八', '捌', '九', '玖'}[digit * 2 - 1];
                     String result1 = "";
                     if (0 != i) {
-                        result1 = String.valueOf(new char[]{' ', '十', '拾', '百', '佰', '千', '仟', '万', '亿',}[i * 2 - (isUseTraditional ? 0 : 1)]);
+                        result1 = String.valueOf(new char[]{' ', '十', '拾', '百', '佰', '千', '仟', '万', '亿',}[i * 2 - (false ? 0 : 1)]);
                     }
                     chineseStr.insert(0, result + result1);
                     lastIsZero = false;

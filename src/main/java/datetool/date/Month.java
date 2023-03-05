@@ -118,7 +118,9 @@ public enum Month {
      * @since 5.7.21
      */
     public int getValueBaseOne() {
-        Assert.isFalse(this == UNDECIMBER, "Unsupported UNDECIMBER Field");
+        if (this == UNDECIMBER) {
+            throw new IllegalArgumentException(DateUtil.format("Unsupported UNDECIMBER Field"));
+        }
         return getValue() + 1;
     }
 
@@ -178,16 +180,23 @@ public enum Month {
      * @since 5.8.0
      */
     public static Month of(String name) throws IllegalArgumentException {
-        Assert.notBlank(name);
+        boolean blank = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (name != null && name.length() != 0) {// 遍历字符
+            for (int i1 = 0; i1 < name.length(); i1++) {
+                if (!Character.isWhitespace(name.charAt(i1))) {
+                    blank = false;
+                    break;
+                }
+            }
+        }
+        if (blank) {
+            throw new IllegalArgumentException(DateUtil.format("[Assertion failed] - this String argument must have text; it must not be null, empty, or blank"));
+        }
         int result = -1;
         for (int i = 0; i < ALIASES.length; i++) {
             boolean equalsIgnoreCase;
-            if (null == name) {
-                // 字符串2空，字符串1非空，直接false
-                equalsIgnoreCase = false;
-            } else {
-                equalsIgnoreCase = ALIASES[i].equalsIgnoreCase(name);
-            }
+            equalsIgnoreCase = ALIASES[i].equalsIgnoreCase(name);
             if (equalsIgnoreCase) {
                 result = i;
                 break;

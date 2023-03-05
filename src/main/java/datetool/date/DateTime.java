@@ -1080,7 +1080,19 @@ public class DateTime extends Date {
      * @return {@link Date}
      */
     private static Date parse(CharSequence dateStr, DateFormat dateFormat) {
-        Assert.notBlank(dateStr, "Date String must be not blank !");
+        boolean blank = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (dateStr != null && dateStr.length() != 0) {// 遍历字符
+            for (int i = 0; i < dateStr.length(); i++) {
+                if (!Character.isWhitespace(dateStr.charAt(i))) {
+                    blank = false;
+                    break;
+                }
+            }
+        }
+        if (blank) {
+            throw new IllegalArgumentException(DateUtil.format("Date String must be not blank !"));
+        }
         try {
             return dateFormat.parse(dateStr.toString());
         } catch (Exception e) {
@@ -1104,8 +1116,19 @@ public class DateTime extends Date {
      */
     private static Calendar parse(CharSequence dateStr, DateParser parser, boolean lenient) {
         Assert.notNull(parser, "Parser or DateFromat must be not null !");
-        Assert.notBlank(dateStr, "Date String must be not blank !");
-
+        boolean blank = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (dateStr != null && dateStr.length() != 0) {// 遍历字符
+            for (int i = 0; i < dateStr.length(); i++) {
+                if (!Character.isWhitespace(dateStr.charAt(i))) {
+                    blank = false;
+                    break;
+                }
+            }
+        }
+        if (blank) {
+            throw new IllegalArgumentException(DateUtil.format("Date String must be not blank !"));
+        }
         final Calendar calendar = CalendarUtil.parse(dateStr, lenient, parser);
         if (null == calendar) {
             throw new DateException("Parse [{}] with format [{}] error!", dateStr, parser.getPattern());

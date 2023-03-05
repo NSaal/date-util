@@ -1,6 +1,6 @@
 package datetool.date.format;
 
-import datetool.lang.Assert;
+import datetool.date.DateUtil;
 
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -29,7 +29,19 @@ abstract class FormatCache<F extends Format> {
 	 * @throws IllegalArgumentException pattern 无效或{@code null}
 	 */
 	public F getInstance(final String pattern, TimeZone timeZone, Locale locale) {
-		Assert.notBlank(pattern, "pattern must not be blank");
+		boolean blank = true;
+		// 判断的时候，并将cs的长度赋给了strLen
+		if (pattern != null && pattern.length() != 0) {// 遍历字符
+			for (int i = 0; i < pattern.length(); i++) {
+				if (!Character.isWhitespace(pattern.charAt(i))) {
+					blank = false;
+					break;
+				}
+			}
+		}
+		if (blank) {
+			throw new IllegalArgumentException(DateUtil.format("pattern must not be blank"));
+		}
 		if (timeZone == null) {
 			timeZone = TimeZone.getDefault();
 		}
