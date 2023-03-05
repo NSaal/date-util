@@ -1,10 +1,7 @@
 package datetool;
 
 import datetool.core.*;
-import datetool.core.enums.DateField;
-import datetool.core.enums.DateUnit;
-import datetool.core.enums.Quarter;
-import datetool.core.enums.Week;
+import datetool.core.enums.*;
 import datetool.core.format.*;
 
 import java.text.DateFormat;
@@ -29,6 +26,7 @@ import java.util.stream.Collectors;
  * @author xiaoleilu
  * @see DatePattern 日期常用格式工具类
  */
+@SuppressWarnings("unused")
 public class DateUtil extends CalendarUtil {
 
     /**
@@ -913,7 +911,7 @@ public class DateUtil extends CalendarUtil {
 
             if (utcString.contains(".")) {
                 // 带毫秒，格式类似：2018-09-13T05:34:31.999+08:00
-                utcString = normalizeMillSeconds(utcString, ".", "+");
+                utcString = normalizeMillSeconds(utcString, "+");
                 return parse(utcString, DatePattern.UTC_MS_WITH_XXX_OFFSET_FORMAT);
             } else {
                 // 格式类似：2018-09-13T05:34:31+08:00
@@ -934,7 +932,7 @@ public class DateUtil extends CalendarUtil {
 
                 if (utcString.contains(".")) {
                     // 带毫秒，格式类似：2018-09-13T05:34:31.999-08:00
-                    utcString = normalizeMillSeconds(utcString, ".", "-");
+                    utcString = normalizeMillSeconds(utcString, "-");
                     return new DateTime(utcString, DatePattern.UTC_MS_WITH_XXX_OFFSET_FORMAT);
                 } else {
                     // 格式类似：2018-09-13T05:34:31-08:00
@@ -949,7 +947,7 @@ public class DateUtil extends CalendarUtil {
                     return parse(utcString + ":00", DatePattern.UTC_SIMPLE_FORMAT);
                 } else if (utcString.contains(".")) {
                     // 可能为：  2021-03-17T06:31:33.99
-                    utcString = normalizeMillSeconds(utcString, ".", null);
+                    utcString = normalizeMillSeconds(utcString, null);
                     return parse(utcString, DatePattern.UTC_SIMPLE_MS_FORMAT);
                 }
             }
@@ -2528,11 +2526,10 @@ public class DateUtil extends CalendarUtil {
      * 如果日期中的毫秒部分超出3位，会导致秒数增加，因此只保留前三位
      *
      * @param dateStr 日期字符串
-     * @param before  毫秒部分的前一个字符
      * @param after   毫秒部分的后一个字符
      * @return 规范之后的毫秒部分
      */
-    private static String normalizeMillSeconds(String dateStr, CharSequence before, CharSequence after) {
+    private static String normalizeMillSeconds(String dateStr, CharSequence after) {
         boolean result2 = true;
         // 判断的时候，并将cs的长度赋给了strLen
         if (after != null && after.length() != 0) {// 遍历字符
@@ -2547,11 +2544,11 @@ public class DateUtil extends CalendarUtil {
             String result1 = "";
             if (dateStr == null || dateStr.length() == 0) {
                 result1 = null == dateStr ? null : "";
-            } else if (before != null) {
-                final String sep1 = before.toString();
+            } else {
+                final String sep1 = ((CharSequence) ".").toString();
                 final int pos1 = dateStr.lastIndexOf(sep1);
                 if (-1 != pos1 && (dateStr.length() - 1) != pos1) {
-                    result1 = dateStr.substring(pos1 + before.length());
+                    result1 = dateStr.substring(pos1 + ((CharSequence) ".").length());
                 }
             }
             String millOrNaco;
@@ -2568,10 +2565,10 @@ public class DateUtil extends CalendarUtil {
             }
 
             String result = "";
-            if (dateStr == null || dateStr.length() == 0 || before == null) {
+            if (dateStr == null || dateStr.length() == 0) {
                 result = dateStr;
             } else {
-                final String sep = before.toString();
+                final String sep = ((CharSequence) ".").toString();
                 if (!sep.isEmpty()) {
                     final int pos = dateStr.lastIndexOf(sep);
                     if (-1 == pos) {
@@ -2581,11 +2578,11 @@ public class DateUtil extends CalendarUtil {
                     }
                 }
             }
-            return result + before + millOrNaco;
+            return result + "." + millOrNaco;
         }
         String subBetween = null;
-        if (dateStr != null && before != null) {
-            final String before2 = before.toString();
+        if (dateStr != null) {
+            final String before2 = ((CharSequence) ".").toString();
             final String after2 = after.toString();
             final int start = dateStr.indexOf(before2);
             if (start != -1) {
@@ -2609,10 +2606,10 @@ public class DateUtil extends CalendarUtil {
         }
 
         String result = "";
-        if (dateStr == null || dateStr.length() == 0 || before == null) {
+        if (dateStr == null || dateStr.length() == 0) {
             result = dateStr;
         } else {
-            final String sep = before.toString();
+            final String sep = ((CharSequence) ".").toString();
             if (!sep.isEmpty()) {
                 final int pos = dateStr.lastIndexOf(sep);
                 if (-1 == pos) {
@@ -2633,7 +2630,7 @@ public class DateUtil extends CalendarUtil {
             }
         }
         return result
-                + before
+                + "."
                 + millOrNaco + after + result1;
     }
 
