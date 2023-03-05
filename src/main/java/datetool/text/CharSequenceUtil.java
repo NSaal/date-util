@@ -101,8 +101,6 @@ public class CharSequenceUtil {
      *     <li>{@code CharSequenceUtil.isNotBlank("abc")    // true}</li>
      * </ul>
      *
-     * <p>注意：该方法与 {@link #isNotEmpty(CharSequence)} 的区别是：
-     * 该方法会校验空白字符，且性能相对于 {@link #isNotEmpty(CharSequence)} 略慢。</p>
      * <p>建议：仅对于客户端（或第三方接口）传入的参数使用该方法。</p>
      *
      * @param str 被检测的字符串
@@ -141,50 +139,6 @@ public class CharSequenceUtil {
      */
     public static boolean isEmpty(CharSequence str) {
         return str == null || str.length() == 0;
-    }
-
-    /**
-     * <p>字符串是否为非空白，非空白的定义如下： </p>
-     * <ol>
-     *     <li>不为 {@code null}</li>
-     *     <li>不为空字符串：{@code ""}</li>
-     * </ol>
-     *
-     * <p>例：</p>
-     * <ul>
-     *     <li>{@code CharSequenceUtil.isNotEmpty(null)     // false}</li>
-     *     <li>{@code CharSequenceUtil.isNotEmpty("")       // false}</li>
-     *     <li>{@code CharSequenceUtil.isNotEmpty(" \t\n")  // true}</li>
-     *     <li>{@code CharSequenceUtil.isNotEmpty("abc")    // true}</li>
-     * </ul>
-     *
-     * <p>注意：该方法与 {@link #isNotBlank(CharSequence)} 的区别是：该方法不校验空白字符。</p>
-     * <p>建议：该方法建议用于工具类或任何可以预期的方法参数的校验中。</p>
-     *
-     * @param str 被检测的字符串
-     * @return 是否为非空
-     * @see #isEmpty(CharSequence)
-     */
-    public static boolean isNotEmpty(CharSequence str) {
-        return !isEmpty(str);
-    }
-
-    /**
-     * 如果字符串是 {@code null}，则返回指定默认字符串，否则返回字符串本身。
-     *
-     * <pre>
-     * nullToDefault(null, &quot;default&quot;)  = &quot;default&quot;
-     * nullToDefault(&quot;&quot;, &quot;default&quot;)    = &quot;&quot;
-     * nullToDefault(&quot;  &quot;, &quot;default&quot;)  = &quot;  &quot;
-     * nullToDefault(&quot;bat&quot;, &quot;default&quot;) = &quot;bat&quot;
-     * </pre>
-     *
-     * @param str        要转换的字符串
-     * @param defaultStr 默认字符串
-     * @return 字符串本身或指定的默认字符串
-     */
-    public static String nullToDefault(CharSequence str, String defaultStr) {
-        return (str == null) ? defaultStr : str.toString();
     }
 
     // ------------------------------------------------------------------------ Trim
@@ -233,7 +187,7 @@ public class CharSequenceUtil {
                 .regionMatches(ignoreCase, 0, prefix.toString(), 0, prefix.length());
 
         if (isStartWith) {
-            return (false == ignoreEquals) || (false == equals(str, prefix, ignoreCase));
+            return (!ignoreEquals) || (!equals(str, prefix, ignoreCase));
         }
         return false;
     }
@@ -282,7 +236,7 @@ public class CharSequenceUtil {
         char c;
         for (int i = 0; i < len; i++) {
             c = str.charAt(i);
-            if (false == ArrayUtil.contains(chars, c)) {
+            if (!ArrayUtil.contains(chars, c)) {
                 builder.append(c);
             }
         }
@@ -626,25 +580,6 @@ public class CharSequenceUtil {
     }
 
     // ------------------------------------------------------------------------ equals
-
-    /**
-     * 比较两个字符串（大小写敏感）。
-     *
-     * <pre>
-     * equals(null, null)   = true
-     * equals(null, &quot;abc&quot;)  = false
-     * equals(&quot;abc&quot;, null)  = false
-     * equals(&quot;abc&quot;, &quot;abc&quot;) = true
-     * equals(&quot;abc&quot;, &quot;ABC&quot;) = false
-     * </pre>
-     *
-     * @param str1 要比较的字符串1
-     * @param str2 要比较的字符串2
-     * @return 如果两个字符串相同，或者都是{@code null}，则返回{@code true}
-     */
-    public static boolean equals(CharSequence str1, CharSequence str2) {
-        return equals(str1, str2, false);
-    }
 
     /**
      * 比较两个字符串（大小写不敏感）。

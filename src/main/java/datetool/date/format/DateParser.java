@@ -47,18 +47,6 @@ public interface DateParser extends DateBasic{
 	boolean parse(String source, ParsePosition pos, Calendar calendar);
 
 	/**
-	 * 将日期字符串解析并转换为  {@link Date} 对象<br>
-	 *
-	 * @param source A {@code String} whose beginning should be parsed.
-	 * @return a {@code java.util.Date} object
-	 * @throws ParseException if the beginning of the specified string cannot be parsed.
-	 * @see java.text.DateFormat#parseObject(String)
-	 */
-	default Object parseObject(String source) throws ParseException{
-		return parse(source);
-	}
-
-	/**
 	 * 根据 {@link ParsePosition} 给定将日期字符串解析并转换为  {@link Date} 对象<br>
 	 *
 	 * @param source A {@code String} whose beginning should be parsed.

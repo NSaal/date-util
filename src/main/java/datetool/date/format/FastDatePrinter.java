@@ -3,7 +3,6 @@ package datetool.date.format;
 import datetool.date.DateException;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.text.DateFormatSymbols;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -374,29 +373,8 @@ public class FastDatePrinter extends AbstractDateBasic implements DatePrinter {
 		return buf;
 	}
 
-	/**
-	 *估算生成的日期字符串长度<br>
-	 * 实际生成的字符串长度小于或等于此值
-	 *
-	 * @return 日期字符串长度
-	 */
-	public int getMaxLengthEstimate() {
-		return mMaxLengthEstimate;
-	}
-
 	// Serializing
 	// -----------------------------------------------------------------------
-	/**
-	 * Create the object after serialization. This implementation reinitializes the transient properties.
-	 *
-	 * @param in ObjectInputStream from which the object is being deserialized.
-	 * @throws IOException if there is an IO issue.
-	 * @throws ClassNotFoundException if a class cannot be found.
-	 */
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		init();
-	}
 
 	/**
 	 * Appends two digits to the given buffer.

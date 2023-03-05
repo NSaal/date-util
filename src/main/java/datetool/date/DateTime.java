@@ -5,7 +5,6 @@ import datetool.date.format.DatePrinter;
 import datetool.date.format.FastDateFormat;
 import datetool.date.format.GlobalCustomFormat;
 import datetool.lang.Assert;
-import datetool.text.CharSequenceUtil;
 import datetool.util.ObjectUtil;
 
 import java.sql.Timestamp;
@@ -1092,7 +1091,7 @@ public class DateTime extends Date {
 			} else {
 				pattern = dateFormat.toString();
 			}
-			throw new DateException(CharSequenceUtil.format("Parse [{}] with format [{}] error!", dateStr, pattern), e);
+			throw new DateException(String.format("Parse [%s] with format [%s] error!", dateStr, pattern), e);
 		}
 	}
 

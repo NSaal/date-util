@@ -2,7 +2,6 @@ package datetool.collection;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * 集合相关工具类
@@ -16,34 +15,7 @@ import java.util.Iterator;
  */
 public class CollUtil {
 
-
-    /**
-     * 以 conjunction 为分隔符将集合转换为字符串<br>
-     * 如果集合元素为数组、{@link Iterable}或{@link Iterator}，则递归组合其为字符串
-     *
-     * @param <T>         集合元素类型
-     * @param iterable    {@link Iterable}
-     * @param conjunction 分隔符
-     * @return 连接后的字符串
-     */
-    public static <T> String join(Iterable<T> iterable, CharSequence conjunction) {
-        if (null == iterable) {
-            return null;
-        }
-        StringBuilder stringBuilder = new StringBuilder();
-        for (T next : iterable) {
-            stringBuilder.append(next.toString());
-            stringBuilder.append(conjunction);
-        }
-        int length = stringBuilder.length();
-        stringBuilder.delete(length - conjunction.length(), length);
-
-        return stringBuilder.toString();
-    }
-
-
     // ----------------------------------------------------------------------------------------------- List
-
 
     /**
      * 新建一个ArrayList<br>

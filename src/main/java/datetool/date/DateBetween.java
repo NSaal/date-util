@@ -24,33 +24,6 @@ public class DateBetween implements Serializable {
 	private final Date end;
 
 	/**
-	 * 创建<br>
-	 * 在前的日期做为起始时间，在后的做为结束时间，间隔只保留绝对值正数
-	 *
-	 * @param begin 起始时间
-	 * @param end   结束时间
-	 * @return DateBetween
-	 * @since 3.2.3
-	 */
-	public static DateBetween create(Date begin, Date end) {
-		return new DateBetween(begin, end);
-	}
-
-	/**
-	 * 创建<br>
-	 * 在前的日期做为起始时间，在后的做为结束时间，间隔只保留绝对值正数
-	 *
-	 * @param begin 起始时间
-	 * @param end   结束时间
-	 * @param isAbs 日期间隔是否只保留绝对值正数
-	 * @return DateBetween
-	 * @since 3.2.3
-	 */
-	public static DateBetween create(Date begin, Date end, boolean isAbs) {
-		return new DateBetween(begin, end, isAbs);
-	}
-
-	/**
 	 * 构造<br>
 	 * 在前的日期做为起始时间，在后的做为结束时间，间隔只保留绝对值正数
 	 *
@@ -112,7 +85,7 @@ public class DateBetween implements Serializable {
 		final int betweenMonthOfYear = endCal.get(Calendar.MONTH) - beginCal.get(Calendar.MONTH);
 
 		int result = betweenYear * 12 + betweenMonthOfYear;
-		if (false == isReset) {
+		if (!isReset) {
 			endCal.set(Calendar.YEAR, beginCal.get(Calendar.YEAR));
 			endCal.set(Calendar.MONTH, beginCal.get(Calendar.MONTH));
 			long between = endCal.getTimeInMillis() - beginCal.getTimeInMillis();
@@ -136,7 +109,7 @@ public class DateBetween implements Serializable {
 		final Calendar endCal = DateUtil.calendar(end);
 
 		int result = endCal.get(Calendar.YEAR) - beginCal.get(Calendar.YEAR);
-		if (false == isReset) {
+		if (!isReset) {
 			// 考虑闰年的2月情况
 			if (Calendar.FEBRUARY == beginCal.get(Calendar.MONTH) && Calendar.FEBRUARY == endCal.get(Calendar.MONTH)) {
 				if (beginCal.get(Calendar.DAY_OF_MONTH) == beginCal.getActualMaximum(Calendar.DAY_OF_MONTH)

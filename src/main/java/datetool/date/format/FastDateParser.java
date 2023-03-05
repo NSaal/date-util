@@ -1,7 +1,5 @@
 package datetool.date.format;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.ParsePosition;
@@ -193,20 +191,6 @@ public class FastDateParser extends AbstractDateBasic implements DateParser {
 	// Serializing
 	// -----------------------------------------------------------------------
 
-	/**
-	 * Create the object after serialization. This implementation reinitializes the transient properties.
-	 *
-	 * @param in ObjectInputStream from which the object is being deserialized.
-	 * @throws IOException            if there is an IO issue.
-	 * @throws ClassNotFoundException if a class cannot be found.
-	 */
-	private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-
-		final Calendar definingCalendar = Calendar.getInstance(timeZone, locale);
-		init(definingCalendar);
-	}
-
 	@Override
 	public Date parse(String source) throws ParseException {
 		final ParsePosition pp = new ParsePosition(0);
@@ -237,7 +221,7 @@ public class FastDateParser extends AbstractDateBasic implements DateParser {
 		while (lt.hasNext()) {
 			final StrategyAndWidth strategyAndWidth = lt.next();
 			final int maxWidth = strategyAndWidth.getMaxWidth(lt);
-			if (false == strategyAndWidth.strategy.parse(this, calendar, source, pos, maxWidth)) {
+			if (!strategyAndWidth.strategy.parse(this, calendar, source, pos, maxWidth)) {
 				return false;
 			}
 		}

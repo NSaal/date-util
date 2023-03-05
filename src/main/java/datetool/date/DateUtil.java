@@ -2,14 +2,10 @@ package datetool.date;
 
 import datetool.collection.CollUtil;
 import datetool.comparator.CompareUtil;
-import datetool.date.format.DateParser;
-import datetool.date.format.DatePrinter;
-import datetool.date.format.FastDateFormat;
-import datetool.date.format.GlobalCustomFormat;
+import datetool.date.format.*;
 import datetool.lang.Assert;
 import datetool.lang.PatternPool;
 import datetool.text.CharSequenceUtil;
-import datetool.util.NumberUtil;
 import datetool.util.ReUtil;
 
 import java.text.DateFormat;
@@ -570,6 +566,23 @@ public class DateUtil extends CalendarUtil {
     }
 
     /**
+     * 根据特定格式格式化日期
+     *
+     * @param date   被格式化的日期
+     * @param format {@link SimpleDateFormat} {@link DatePattern#NORM_DATETIME_FORMATTER}
+     * @return 格式化后的字符串
+     * @since 5.0.0
+     */
+    public static String format(Date date, DateStyle format) {
+        if (null == format || null == date) {
+            return null;
+        }
+        // java.time.temporal.UnsupportedTemporalTypeException: Unsupported field: YearOfEra
+        // 出现以上报错时，表示Instant时间戳没有时区信息，赋予默认时区
+        return TemporalAccessorUtil.format(date.toInstant(), format.getValue());
+    }
+
+    /**
      * 格式化日期时间<br>
      * 格式 yyyy-MM-dd HH:mm:ss
      *
@@ -640,7 +653,7 @@ public class DateUtil extends CalendarUtil {
             return null;
         }
 
-        if (false == isUppercase) {
+        if (!isUppercase) {
             return (withTime ? DatePattern.CHINESE_DATE_TIME_FORMAT : DatePattern.CHINESE_DATE_FORMAT).format(date);
         }
 
@@ -670,6 +683,17 @@ public class DateUtil extends CalendarUtil {
      */
     public static LocalDateTime parseLocalDateTime(CharSequence dateStr, String format) {
         return LocalDateTimeUtil.parse(dateStr, format);
+    }
+
+    /**
+     * 构建DateTime对象
+     *
+     * @param dateStr    Date字符串
+     * @param dateStyle 格式化器 {@link SimpleDateFormat}
+     * @return DateTime对象
+     */
+    public static DateTime parse(CharSequence dateStr, DateStyle dateStyle) {
+        return parse(dateStr, dateStyle.getValue());
     }
 
     /**
@@ -969,7 +993,7 @@ public class DateUtil extends CalendarUtil {
         dateStr = CharSequenceUtil.removeAll(dateStr.trim(), '日', '秒');
         int length = dateStr.length();
 
-        if (NumberUtil.isNumber(dateStr)) {
+        if (isNumber(dateStr)) {
             // 纯数字形式
             if (length == DatePattern.PURE_DATETIME_PATTERN.length()) {
                 return parse(dateStr, DatePattern.PURE_DATETIME_FORMAT);
@@ -1649,110 +1673,6 @@ public class DateUtil extends CalendarUtil {
 
 
     /**
-     * 计时，常用于记录某段代码的执行时间，单位：纳秒
-     *
-     * @param preTime 之前记录的时间
-     * @return 时间差，纳秒
-     */
-    public static long spendNt(long preTime) {
-        return System.nanoTime() - preTime;
-    }
-
-    /**
-     * 计时，常用于记录某段代码的执行时间，单位：毫秒
-     *
-     * @param preTime 之前记录的时间
-     * @return 时间差，毫秒
-     */
-    public static long spendMs(long preTime) {
-        return System.currentTimeMillis() - preTime;
-    }
-
-    /**
-     * 计时器<br>
-     * 计算某个过程花费的时间，精确到毫秒
-     *
-     * @return Timer
-     */
-    public static TimeInterval timer() {
-        return new TimeInterval();
-
-    }
-
-    /**
-     * 计时器<br>
-     * 计算某个过程花费的时间，精确到毫秒
-     *
-     * @param isNano 是否使用纳秒计数，false则使用毫秒
-     * @return Timer
-     * @since 5.2.3
-     */
-    public static TimeInterval timer(boolean isNano) {
-        return new TimeInterval(isNano);
-    }
-
-    /**
-     * 创建秒表{@link StopWatch}，用于对代码块的执行时间计数
-     * <p>
-     * 使用方法如下：
-     *
-     * <pre>
-     * StopWatch stopWatch = DateUtil.createStopWatch();
-     *
-     * // 任务1
-     * stopWatch.start("任务一");
-     * Thread.sleep(1000);
-     * stopWatch.stop();
-     *
-     * // 任务2
-     * stopWatch.start("任务二");
-     * Thread.sleep(2000);
-     * stopWatch.stop();
-     *
-     * // 打印出耗时
-     * Console.log(stopWatch.prettyPrint());
-     *
-     * </pre>
-     *
-     * @return {@link StopWatch}
-     * @since 5.2.3
-     */
-    public static StopWatch createStopWatch() {
-        return new StopWatch();
-    }
-
-    /**
-     * 创建秒表{@link StopWatch}，用于对代码块的执行时间计数
-     * <p>
-     * 使用方法如下：
-     *
-     * <pre>
-     * StopWatch stopWatch = DateUtil.createStopWatch("任务名称");
-     *
-     * // 任务1
-     * stopWatch.start("任务一");
-     * Thread.sleep(1000);
-     * stopWatch.stop();
-     *
-     * // 任务2
-     * stopWatch.start("任务二");
-     * Thread.sleep(2000);
-     * stopWatch.stop();
-     *
-     * // 打印出耗时
-     * Console.log(stopWatch.prettyPrint());
-     *
-     * </pre>
-     *
-     * @param id 用于标识秒表的唯一ID
-     * @return {@link StopWatch}
-     * @since 5.2.3
-     */
-    public static StopWatch createStopWatch(String id) {
-        return new StopWatch(id);
-    }
-
-    /**
      * 生日转为年龄，计算法定年龄
      *
      * @param birthDay 生日，标准日期字符串
@@ -1882,8 +1802,8 @@ public class DateUtil extends CalendarUtil {
      * @since 5.7.21
      */
     public static List<DateTime> rangeContains(DateRange start, DateRange end) {
-        List<DateTime> startDateTimes = CollUtil.newArrayList((Iterable<DateTime>) start);
-        List<DateTime> endDateTimes = CollUtil.newArrayList((Iterable<DateTime>) end);
+        List<DateTime> startDateTimes = CollUtil.newArrayList(start);
+        List<DateTime> endDateTimes = CollUtil.newArrayList(end);
         return startDateTimes.stream().filter(endDateTimes::contains).collect(Collectors.toList());
     }
 
@@ -1897,8 +1817,8 @@ public class DateUtil extends CalendarUtil {
      * @since 5.7.21
      */
     public static List<DateTime> rangeNotContains(DateRange start, DateRange end) {
-        List<DateTime> startDateTimes = CollUtil.newArrayList((Iterable<DateTime>) start);
-        List<DateTime> endDateTimes = CollUtil.newArrayList((Iterable<DateTime>) end);
+        List<DateTime> startDateTimes = CollUtil.newArrayList(start);
+        List<DateTime> endDateTimes = CollUtil.newArrayList(end);
         return endDateTimes.stream().filter(item -> !startDateTimes.contains(item)).collect(Collectors.toList());
     }
 
@@ -1949,7 +1869,7 @@ public class DateUtil extends CalendarUtil {
      * @return {@link DateRange}
      */
     public static List<DateTime> rangeToList(Date start, Date end, DateField unit) {
-        return CollUtil.newArrayList((Iterable<DateTime>) range(start, end, unit));
+        return CollUtil.newArrayList(range(start, end, unit));
     }
 
     /**
@@ -1963,30 +1883,7 @@ public class DateUtil extends CalendarUtil {
      * @since 5.7.16
      */
     public static List<DateTime> rangeToList(Date start, Date end, final DateField unit, int step) {
-        return CollUtil.newArrayList((Iterable<DateTime>) new DateRange(start, end, unit, step));
-    }
-
-    /**
-     * 通过生日计算星座
-     *
-     * @param month 月，从0开始计数
-     * @param day   天
-     * @return 星座名
-     * @since 4.4.3
-     */
-    public static String getZodiac(int month, int day) {
-        return Zodiac.getZodiac(month, day);
-    }
-
-    /**
-     * 计算生肖，只计算1900年后出生的人
-     *
-     * @param year 农历年
-     * @return 生肖名
-     * @since 4.4.3
-     */
-    public static String getChineseZodiac(int year) {
-        return Zodiac.getChineseZodiac(year);
+        return CollUtil.newArrayList(new DateRange(start, end, unit, step));
     }
 
     /**
@@ -2332,5 +2229,116 @@ public class DateUtil extends CalendarUtil {
         return CharSequenceUtil.subBefore(dateStr, before, true)
                 + before
                 + millOrNaco + after + CharSequenceUtil.subAfter(dateStr, after, true);
+    }
+
+    /**
+     * 是否为数字，支持包括：
+     *
+     * <pre>
+     * 1、10进制
+     * 2、16进制数字（0x开头）
+     * 3、科学计数法形式（1234E3）
+     * 4、类型标识形式（123D）
+     * 5、正负数标识形式（+123、-234）
+     * </pre>
+     *
+     * @param str 字符串值
+     * @return 是否为数字
+     */
+    private static boolean isNumber(CharSequence str) {
+        if (CharSequenceUtil.isBlank(str)) {
+            return false;
+        }
+        char[] chars = str.toString().toCharArray();
+        int sz = chars.length;
+        boolean hasExp = false;
+        boolean hasDecPoint = false;
+        boolean allowSigns = false;
+        boolean foundDigit = false;
+        // deal with any possible sign up front
+        int start = (chars[0] == '-' || chars[0] == '+') ? 1 : 0;
+        if (sz > start + 1) {
+            if (chars[start] == '0' && (chars[start + 1] == 'x' || chars[start + 1] == 'X')) {
+                int i = start + 2;
+                if (i == sz) {
+                    return false; // str == "0x"
+                }
+                // checking hex (it can't be anything else)
+                for (; i < chars.length; i++) {
+                    if ((chars[i] < '0' || chars[i] > '9') && (chars[i] < 'a' || chars[i] > 'f') && (chars[i] < 'A' || chars[i] > 'F')) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        sz--; // don't want to loop to the last char, check it afterwords
+        // for type qualifiers
+        int i = start;
+        // loop to the next to last char or to the last char if we need another digit to
+        // make a valid number (e.g. chars[0..5] = "1234E")
+        while (i < sz || (i < sz + 1 && allowSigns && !foundDigit)) {
+            if (chars[i] >= '0' && chars[i] <= '9') {
+                foundDigit = true;
+                allowSigns = false;
+
+            } else if (chars[i] == '.') {
+                if (hasDecPoint || hasExp) {
+                    // two decimal points or dec in exponent
+                    return false;
+                }
+                hasDecPoint = true;
+            } else if (chars[i] == 'e' || chars[i] == 'E') {
+                // we've already taken care of hex.
+                if (hasExp) {
+                    // two E's
+                    return false;
+                }
+                if (!foundDigit) {
+                    return false;
+                }
+                hasExp = true;
+                allowSigns = true;
+            } else if (chars[i] == '+' || chars[i] == '-') {
+                if (!allowSigns) {
+                    return false;
+                }
+                allowSigns = false;
+                foundDigit = false; // we need a digit after the E
+            } else {
+                return false;
+            }
+            i++;
+        }
+        if (i < chars.length) {
+            if (chars[i] >= '0' && chars[i] <= '9') {
+                // no type qualifier, OK
+                return true;
+            }
+            if (chars[i] == 'e' || chars[i] == 'E') {
+                // can't have an E at the last byte
+                return false;
+            }
+            if (chars[i] == '.') {
+                if (hasDecPoint || hasExp) {
+                    // two decimal points or dec in exponent
+                    return false;
+                }
+                // single trailing decimal point after non-exponent is ok
+                return foundDigit;
+            }
+            if (!allowSigns && (chars[i] == 'd' || chars[i] == 'D' || chars[i] == 'f' || chars[i] == 'F')) {
+                return foundDigit;
+            }
+            if (chars[i] == 'l' || chars[i] == 'L') {
+                // not allowing L with an exponent
+                return foundDigit && !hasExp;
+            }
+            // last character is illegal
+            return false;
+        }
+        // allowSigns is true iff the val ends in 'E'
+        // found digit it to make sure weird stuff like '.' and '1E-' doesn't pass
+        return !allowSigns && foundDigit;
     }
 }

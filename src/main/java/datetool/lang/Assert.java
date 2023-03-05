@@ -210,39 +210,4 @@ public class Assert {
 		return checkBetween(value, min, max, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
 	}
 
-	/**
-	 * 检查值是否在指定范围内
-	 *
-	 * @param <X>           异常类型
-	 * @param value         值
-	 * @param min           最小值（包含）
-	 * @param max           最大值（包含）
-	 * @param errorSupplier 错误抛出异常附带的消息生产接口
-	 * @return 经过检查后的值
-	 * @throws X if value is out of bound
-	 * @since 5.7.15
-	 */
-	public static <X extends Throwable> double checkBetween(double value, double min, double max, Supplier<? extends X> errorSupplier) throws X {
-		if (value < min || value > max) {
-			throw errorSupplier.get();
-		}
-
-		return value;
-	}
-
-	/**
-	 * 检查值是否在指定范围内
-	 *
-	 * @param value            值
-	 * @param min              最小值（包含）
-	 * @param max              最大值（包含）
-	 * @param errorMsgTemplate 异常信息模板，类似于"aa{}bb{}cc"
-	 * @param params           异常信息参数，用于替换"{}"占位符
-	 * @return 经过检查后的值
-	 * @since 5.7.15
-	 */
-	public static double checkBetween(double value, double min, double max, String errorMsgTemplate, Object... params) {
-		return checkBetween(value, min, max, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
-	}
-
 }

@@ -102,7 +102,34 @@ public class DateModifier {
 				}
 			}
 
-			modifyField(calendar, i, modifyType);
+			int field = i;
+			if (Calendar.HOUR == field) {
+				// 修正小时。HOUR为12小时制，上午的结束时间为12:00，此处改为HOUR_OF_DAY: 23:59
+				field = Calendar.HOUR_OF_DAY;
+			}
+
+			switch (modifyType) {
+				case TRUNCATE:
+					calendar.set(field, DateUtil.getBeginValue(calendar, field));
+					break;
+				case CEILING:
+					calendar.set(field, DateUtil.getEndValue(calendar, field));
+					break;
+				case ROUND:
+					int min = DateUtil.getBeginValue(calendar, field);
+					int max = DateUtil.getEndValue(calendar, field);
+					int href;
+					if (Calendar.DAY_OF_WEEK == field) {
+						// 星期特殊处理，假设周一是第一天，中间的为周四
+						href = (min + 3) % 7;
+					} else {
+						href = (max - min) / 2 + 1;
+					}
+					int value = calendar.get(field);
+					calendar.set(field, (value < href) ? min : max);
+					break;
+			}
+			// Console.log("# {} -> {}", DateField.of(field), calendar.get(field));
 		}
 
 		if (truncateMillisecond) {
@@ -114,42 +141,6 @@ public class DateModifier {
 
 	// -------------------------------------------------------------------------------------------------- Private method start
 
-	/**
-	 * 修改日期字段值
-	 *
-	 * @param calendar   {@link Calendar}
-	 * @param field      字段，见{@link Calendar}
-	 * @param modifyType {@link ModifyType}
-	 */
-	private static void modifyField(Calendar calendar, int field, ModifyType modifyType) {
-		if (Calendar.HOUR == field) {
-			// 修正小时。HOUR为12小时制，上午的结束时间为12:00，此处改为HOUR_OF_DAY: 23:59
-			field = Calendar.HOUR_OF_DAY;
-		}
-
-		switch (modifyType) {
-			case TRUNCATE:
-				calendar.set(field, DateUtil.getBeginValue(calendar, field));
-				break;
-			case CEILING:
-				calendar.set(field, DateUtil.getEndValue(calendar, field));
-				break;
-			case ROUND:
-				int min = DateUtil.getBeginValue(calendar, field);
-				int max = DateUtil.getEndValue(calendar, field);
-				int href;
-				if (Calendar.DAY_OF_WEEK == field) {
-					// 星期特殊处理，假设周一是第一天，中间的为周四
-					href = (min + 3) % 7;
-				} else {
-					href = (max - min) / 2 + 1;
-				}
-				int value = calendar.get(field);
-				calendar.set(field, (value < href) ? min : max);
-				break;
-		}
-		// Console.log("# {} -> {}", DateField.of(field), calendar.get(field));
-	}
 	// -------------------------------------------------------------------------------------------------- Private method end
 
 	/**

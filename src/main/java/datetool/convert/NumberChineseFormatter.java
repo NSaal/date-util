@@ -93,7 +93,7 @@ public class NumberChineseFormatter {
 		for (int i = 0; temp > 0; i++) {
 			int digit = temp % 10;
 			if (digit == 0) { // 取到的数字为 0
-				if (false == lastIsZero) {
+				if (!lastIsZero) {
 					// 前一个数字不是 0，则在当前汉字串前加“零”字;
 					chineseStr.insert(0, "零");
 				}
