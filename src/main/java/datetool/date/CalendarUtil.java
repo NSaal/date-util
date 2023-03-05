@@ -93,7 +93,7 @@ public class CalendarUtil {
      * @return 原{@link Calendar}
      */
     public static Calendar truncate(Calendar calendar, DateField dateField) {
-        return DateModifier.modify(calendar, dateField.getValue(), DateModifier.ModifyType.TRUNCATE);
+        return modify(calendar, dateField.getValue(), ModifyType.TRUNCATE, false);
     }
 
     /**
@@ -104,7 +104,7 @@ public class CalendarUtil {
      * @return 原{@link Calendar}
      */
     public static Calendar round(Calendar calendar, DateField dateField) {
-        return DateModifier.modify(calendar, dateField.getValue(), DateModifier.ModifyType.ROUND);
+        return modify(calendar, dateField.getValue(), ModifyType.ROUND, false);
     }
 
     /**
@@ -115,7 +115,7 @@ public class CalendarUtil {
      * @return 原{@link Calendar}
      */
     public static Calendar ceiling(Calendar calendar, DateField dateField) {
-        return DateModifier.modify(calendar, dateField.getValue(), DateModifier.ModifyType.CEILING);
+        return modify(calendar, dateField.getValue(), ModifyType.CEILING, false);
     }
 
     /**
@@ -132,7 +132,7 @@ public class CalendarUtil {
      * @return 原{@link Calendar}
      */
     public static Calendar ceiling(Calendar calendar, DateField dateField, boolean truncateMillisecond) {
-        return DateModifier.modify(calendar, dateField.getValue(), DateModifier.ModifyType.CEILING, truncateMillisecond);
+        return modify(calendar, dateField.getValue(), ModifyType.CEILING, truncateMillisecond);
     }
 
     /**
@@ -808,7 +808,7 @@ public class CalendarUtil {
                             '六', '陆', '七', '柒', '八', '捌', '九', '玖'}[digit * 2 - 1];
                     String result1 = "";
                     if (0 != i) {
-                        result1 = String.valueOf(new char[]{' ', '十', '拾', '百', '佰', '千', '仟', '万', '亿',}[i * 2 - (false ? 0 : 1)]);
+                        result1 = String.valueOf(new char[]{' ', '十', '拾', '百', '佰', '千', '仟', '万', '亿',}[i * 2 - (1)]);
                     }
                     chineseStr.insert(0, result + result1);
                     lastIsZero = false;
@@ -823,5 +823,139 @@ public class CalendarUtil {
             return chinese.substring(1);
         }
         return chinese;
+    }
+
+    /**
+     * 修改日期，取起始值或者结束值<br>
+     * 可选是否归零毫秒。
+     *
+     * <p>
+     * 在{@link ModifyType#TRUNCATE}模式下，毫秒始终要归零,
+     * 但是在{@link ModifyType#CEILING}和{@link ModifyType#ROUND}模式下，
+     * 有时候由于毫秒部分必须为0（如MySQL数据库中），因此在此加上选项。
+     * </p>
+     *
+     * @param calendar            {@link Calendar}
+     * @param dateField           日期字段，即保留到哪个日期字段
+     * @param modifyType          修改类型，包括舍去、四舍五入、进一等
+     * @param truncateMillisecond 是否归零毫秒
+     * @return 修改后的{@link Calendar}
+     * @since 5.7.5
+     */
+    private static Calendar modify(Calendar calendar, int dateField, ModifyType modifyType, boolean truncateMillisecond) {
+        int[] IGNORE_FIELDS = new int[]{ //
+                Calendar.HOUR_OF_DAY, // 与HOUR同名
+                Calendar.AM_PM, // 此字段单独处理，不参与计算起始和结束
+                Calendar.DAY_OF_WEEK_IN_MONTH, // 不参与计算
+                Calendar.DAY_OF_YEAR, // DAY_OF_MONTH体现
+                Calendar.WEEK_OF_MONTH, // 特殊处理
+                Calendar.WEEK_OF_YEAR // WEEK_OF_MONTH体现
+        };
+        // AM_PM上下午特殊处理
+        if (Calendar.AM_PM == dateField) {
+            boolean isAM = isAM(calendar);
+            switch (modifyType) {
+                case TRUNCATE:
+                    calendar.set(Calendar.HOUR_OF_DAY, isAM ? 0 : 12);
+                    break;
+                case CEILING:
+                    calendar.set(Calendar.HOUR_OF_DAY, isAM ? 11 : 23);
+                    break;
+                case ROUND:
+                    int min = isAM ? 0 : 12;
+                    int max = isAM ? 11 : 23;
+                    int href = (max - min) / 2 + 1;
+                    int value = calendar.get(Calendar.HOUR_OF_DAY);
+                    calendar.set(Calendar.HOUR_OF_DAY, (value < href) ? min : max);
+                    break;
+            }
+            // 处理下一级别字段
+            return modify(calendar, dateField + 1, modifyType, false);
+        }
+
+        final int endField = truncateMillisecond ? Calendar.SECOND : Calendar.MILLISECOND;
+        // 循环处理各级字段，精确到毫秒字段
+        for (int i = dateField + 1; i <= endField; i++) {
+            int result = -1;
+            for (int i1 = 0; i1 < IGNORE_FIELDS.length; i1++) {
+                if (i == IGNORE_FIELDS[i1]) {
+                    result = i1;
+                    break;
+                }
+            }
+            if (result > -1) {
+                // 忽略无关字段（WEEK_OF_MONTH）始终不做修改
+                continue;
+            }
+
+            // 在计算本周的起始和结束日时，月相关的字段忽略。
+            if (Calendar.WEEK_OF_MONTH == dateField || Calendar.WEEK_OF_YEAR == dateField) {
+                if (Calendar.DAY_OF_MONTH == i) {
+                    continue;
+                }
+            } else {
+                // 其它情况忽略周相关字段计算
+                if (Calendar.DAY_OF_WEEK == i) {
+                    continue;
+                }
+            }
+
+            int field = i;
+            if (Calendar.HOUR == field) {
+                // 修正小时。HOUR为12小时制，上午的结束时间为12:00，此处改为HOUR_OF_DAY: 23:59
+                field = Calendar.HOUR_OF_DAY;
+            }
+
+            switch (modifyType) {
+                case TRUNCATE:
+                    calendar.set(field, getBeginValue(calendar, field));
+                    break;
+                case CEILING:
+                    calendar.set(field, getEndValue(calendar, field));
+                    break;
+                case ROUND:
+                    int min = getBeginValue(calendar, field);
+                    int max = getEndValue(calendar, field);
+                    int href;
+                    if (Calendar.DAY_OF_WEEK == field) {
+                        // 星期特殊处理，假设周一是第一天，中间的为周四
+                        href = (min + 3) % 7;
+                    } else {
+                        href = (max - min) / 2 + 1;
+                    }
+                    int value = calendar.get(field);
+                    calendar.set(field, (value < href) ? min : max);
+                    break;
+            }
+            // Console.log("# {} -> {}", DateField.of(field), calendar.get(field));
+        }
+
+        if (truncateMillisecond) {
+            calendar.set(Calendar.MILLISECOND, 0);
+        }
+
+        return calendar;
+    }
+
+    /**
+     * 修改类型
+     *
+     * @author looly
+     */
+    public enum ModifyType {
+        /**
+         * 取指定日期短的起始值.
+         */
+        TRUNCATE,
+
+        /**
+         * 指定日期属性按照四舍五入处理
+         */
+        ROUND,
+
+        /**
+         * 指定日期属性按照进一法处理
+         */
+        CEILING
     }
 }
