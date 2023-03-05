@@ -13,8 +13,6 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
@@ -181,16 +179,6 @@ public class DateTime extends Date {
 		this(instant.toEpochMilli());
 	}
 
-	/**
-	 * 给定日期Instant的构造
-	 *
-	 * @param instant {@link Instant} 对象
-	 * @param zoneId  时区ID
-	 * @since 5.0.5
-	 */
-	public DateTime(Instant instant, ZoneId zoneId) {
-		this(instant.toEpochMilli(), ZoneUtil.toTimeZone(zoneId));
-	}
 
 	/**
 	 * 给定日期TemporalAccessor的构造
@@ -202,15 +190,6 @@ public class DateTime extends Date {
 		this(TemporalAccessorUtil.toInstant(temporalAccessor));
 	}
 
-	/**
-	 * 给定日期ZonedDateTime的构造
-	 *
-	 * @param zonedDateTime {@link ZonedDateTime} 对象
-	 * @since 5.0.5
-	 */
-	public DateTime(ZonedDateTime zonedDateTime) {
-		this(zonedDateTime.toInstant(), zonedDateTime.getZone());
-	}
 
 	/**
 	 * 给定日期毫秒数的构造
@@ -288,17 +267,6 @@ public class DateTime extends Date {
 	 */
 	public DateTime(CharSequence dateStr, DateFormat dateFormat) {
 		this(parse(dateStr, dateFormat), dateFormat.getTimeZone());
-	}
-
-	/**
-	 * 构建DateTime对象
-	 *
-	 * @param dateStr   Date字符串
-	 * @param formatter 格式化器,{@link DateTimeFormatter}
-	 * @since 5.0.0
-	 */
-	public DateTime(CharSequence dateStr, DateTimeFormatter formatter) {
-		this(TemporalAccessorUtil.toInstant(formatter.parse(dateStr)), formatter.getZone());
 	}
 
 	/**
@@ -416,7 +384,7 @@ public class DateTime extends Date {
 		calendar.set(field, value);
 
 		DateTime dt = this;
-		if (false == mutable) {
+		if (!mutable) {
 			dt = ObjectUtil.clone(this);
 		}
 		return dt.setTimeInternal(calendar.getTimeInMillis());

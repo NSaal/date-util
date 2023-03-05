@@ -13,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Year;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
@@ -729,18 +728,6 @@ public class DateUtil extends CalendarUtil {
      */
     public static DateTime parse(CharSequence dateStr, DateParser parser, boolean lenient) {
         return new DateTime(dateStr, parser, lenient);
-    }
-
-    /**
-     * 构建DateTime对象
-     *
-     * @param dateStr   Date字符串
-     * @param formatter 格式化器,{@link DateTimeFormatter}
-     * @return DateTime对象
-     * @since 5.0.0
-     */
-    public static DateTime parse(CharSequence dateStr, DateTimeFormatter formatter) {
-        return new DateTime(dateStr, formatter);
     }
 
     /**
@@ -1986,18 +1973,6 @@ public class DateUtil extends CalendarUtil {
      */
     public static LocalDateTime toLocalDateTime(Date date) {
         return LocalDateTimeUtil.of(date);
-    }
-
-    /**
-     * {@link Date} 转换时区
-     *
-     * @param date   {@link Date}
-     * @param zoneId {@link ZoneId}
-     * @return {@link DateTime}
-     * @since 5.8.3
-     */
-    public static DateTime convertTimeZone(Date date, ZoneId zoneId) {
-        return new DateTime(date, ZoneUtil.toTimeZone(zoneId));
     }
 
     /**
