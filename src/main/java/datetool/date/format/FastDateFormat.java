@@ -1,13 +1,14 @@
 package datetool.date.format;
 
-import java.text.FieldPosition;
-import java.text.Format;
-import java.text.ParseException;
-import java.text.ParsePosition;
+import datetool.date.DateUtil;
+
+import java.text.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * <p>
@@ -25,15 +26,54 @@ import java.util.TimeZone;
 public class FastDateFormat extends Format implements DateParser, DatePrinter {
 	private static final long serialVersionUID = 8097890768636183236L;
 
-	private static final FormatCache<FastDateFormat> CACHE = new FormatCache<FastDateFormat>(){
-		@Override
-		protected FastDateFormat createInstance(final String pattern, final TimeZone timeZone, final Locale locale) {
-			return new FastDateFormat(pattern, timeZone, locale);
-		}
-	};
+	private static final ConcurrentMap<Object, FastDateFormat> cInstanceCache = new ConcurrentHashMap<>(7);
+
 
 	private final FastDatePrinter printer;
 	private final FastDateParser parser;
+
+	/**
+	 * 使用 pattern, time zone and locale 获得对应的 格式化器
+	 *
+	 * @param pattern  非空日期格式，使用与 {@link SimpleDateFormat}相同格式
+	 * @param timeZone 时区，默认当前时区
+	 * @param locale   地区，默认使用当前地区
+	 * @return 格式化器
+	 * @throws IllegalArgumentException pattern 无效或{@code null}
+	 */
+	public static FastDateFormat getCacheInstance(final String pattern, TimeZone timeZone, Locale locale) {
+		boolean blank = true;
+		// 判断的时候，并将cs的长度赋给了strLen
+		if (pattern != null && pattern.length() != 0) {// 遍历字符
+			for (int i = 0; i < pattern.length(); i++) {
+				if (!Character.isWhitespace(pattern.charAt(i))) {
+					blank = false;
+					break;
+				}
+			}
+		}
+		if (blank) {
+			throw new IllegalArgumentException(DateUtil.format("pattern must not be blank"));
+		}
+		if (timeZone == null) {
+			timeZone = TimeZone.getDefault();
+		}
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		final Object[] key = new Object[]{pattern, timeZone, locale};
+		FastDateFormat format = cInstanceCache.get(key);
+		if (format == null) {
+			format = new FastDateFormat(pattern, timeZone, locale);
+			final FastDateFormat previousValue = cInstanceCache.putIfAbsent(key, format);
+			if (previousValue != null) {
+				// another thread snuck in and did the same work
+				// we should return the instance that is in ConcurrentMap
+				format = previousValue;
+			}
+		}
+		return format;
+	}
 
 	// -----------------------------------------------------------------------
 
@@ -46,7 +86,7 @@ public class FastDateFormat extends Format implements DateParser, DatePrinter {
 	 * @throws IllegalArgumentException 日期格式问题
 	 */
 	public static FastDateFormat getInstance(final String pattern) {
-		return CACHE.getInstance(pattern, null, null);
+		return getCacheInstance(pattern, null, null);
 	}
 
 	/**
@@ -59,7 +99,7 @@ public class FastDateFormat extends Format implements DateParser, DatePrinter {
 	 * @throws IllegalArgumentException 日期格式问题
 	 */
 	public static FastDateFormat getInstance(final String pattern, final TimeZone timeZone) {
-		return CACHE.getInstance(pattern, timeZone, null);
+		return getCacheInstance(pattern, timeZone, null);
 	}
 
 	/**
@@ -72,7 +112,7 @@ public class FastDateFormat extends Format implements DateParser, DatePrinter {
 	 * @throws IllegalArgumentException 日期格式问题
 	 */
 	public static FastDateFormat getInstance(final String pattern, final Locale locale) {
-		return CACHE.getInstance(pattern, null, locale);
+		return getCacheInstance(pattern, null, locale);
 	}
 
 	/**
@@ -86,7 +126,7 @@ public class FastDateFormat extends Format implements DateParser, DatePrinter {
 	 * @throws IllegalArgumentException 日期格式问题
 	 */
 	public static FastDateFormat getInstance(final String pattern, final TimeZone timeZone, final Locale locale) {
-		return CACHE.getInstance(pattern, timeZone, locale);
+		return getCacheInstance(pattern, timeZone, locale);
 	}
 
 	// ----------------------------------------------------------------------- Constructor start
