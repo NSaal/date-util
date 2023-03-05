@@ -141,23 +141,7 @@ public class CharSequenceUtil {
         return str == null || str.length() == 0;
     }
 
-    // ------------------------------------------------------------------------ Trim
-
     // ------------------------------------------------------------------------ startWith
-
-    /**
-     * 是否以指定字符串开头<br>
-     * 如果给定的字符串和开头字符串都为null则返回true，否则任意一个值为null返回false
-     *
-     * @param str        被监测字符串
-     * @param prefix     开头字符串
-     * @param ignoreCase 是否忽略大小写
-     * @return 是否以指定字符串开头
-     * @since 5.4.3
-     */
-    public static boolean startWith(CharSequence str, CharSequence prefix, boolean ignoreCase) {
-        return startWith(str, prefix, ignoreCase, false);
-    }
 
     /**
      * 是否以指定字符串开头<br>
@@ -201,17 +185,6 @@ public class CharSequenceUtil {
      */
     public static boolean startWithIgnoreEquals(CharSequence str, CharSequence prefix) {
         return startWith(str, prefix, false, true);
-    }
-
-    /**
-     * 是否以指定字符串开头，忽略大小写
-     *
-     * @param str    被监测字符串
-     * @param prefix 开头字符串
-     * @return 是否以指定字符串开头
-     */
-    public static boolean startWithIgnoreCase(CharSequence str, CharSequence prefix) {
-        return startWith(str, prefix, true);
     }
 
     // ------------------------------------------------------------------------ remove
@@ -280,8 +253,6 @@ public class CharSequenceUtil {
         }
         return str2;
     }
-
-    // ------------------------------------------------------------------------ split
 
     // ------------------------------------------------------------------------ sub
 
