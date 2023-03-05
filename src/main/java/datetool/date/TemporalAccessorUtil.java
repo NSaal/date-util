@@ -1,12 +1,12 @@
 package datetool.date;
 
 import datetool.date.format.GlobalCustomFormat;
-import datetool.text.CharSequenceUtil;
 
 import java.time.Month;
 import java.time.*;
 import java.time.chrono.Era;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 import java.time.temporal.UnsupportedTemporalTypeException;
@@ -17,7 +17,7 @@ import java.time.temporal.UnsupportedTemporalTypeException;
  * @author looly
  * @since 5.3.9
  */
-public class TemporalAccessorUtil extends TemporalUtil{
+public class TemporalAccessorUtil {
 
 	/**
 	 * 安全获取时间的某个属性，属性不存在返回最小值，一般为0<br>
@@ -97,7 +97,17 @@ public class TemporalAccessorUtil extends TemporalUtil{
 			return GlobalCustomFormat.format(time, format);
 		}
 
-		final DateTimeFormatter formatter = CharSequenceUtil.isBlank(format)
+		boolean isBlank = true;
+		// 判断的时候，并将cs的长度赋给了strLen
+		if (format != null && ((CharSequence) format).length() != 0) {// 遍历字符
+			for (int i = 0; i < ((CharSequence) format).length(); i++) {
+				if (!Character.isWhitespace(((CharSequence) format).charAt(i))) {
+					isBlank = false;
+					break;
+				}
+			}
+		}
+		final DateTimeFormatter formatter = isBlank
 				? null : DateTimeFormatter.ofPattern(format);
 
 		return format(time, formatter);
@@ -155,7 +165,28 @@ public class TemporalAccessorUtil extends TemporalUtil{
 			// issue#1891@Github
 			// Instant.from不能完成日期转换
 			//result = Instant.from(temporalAccessor);
-			result = toInstant(LocalDateTimeUtil.of(temporalAccessor));
+			LocalDateTime result1;
+			if (null == temporalAccessor) {
+				result1 = null;
+			} else if (temporalAccessor instanceof LocalDate) {
+				result1 = ((LocalDate) temporalAccessor).atStartOfDay();
+			} else if(temporalAccessor instanceof Instant){
+				result1 = LocalDateTime.ofInstant((Instant) temporalAccessor, ZoneId.systemDefault());
+			} else if(temporalAccessor instanceof ZonedDateTime){
+				result1 = ((ZonedDateTime) temporalAccessor).toLocalDateTime();
+			} else {
+				result1 = LocalDateTime.of(
+						get(temporalAccessor, ChronoField.YEAR),
+						get(temporalAccessor, ChronoField.MONTH_OF_YEAR),
+						get(temporalAccessor, ChronoField.DAY_OF_MONTH),
+						get(temporalAccessor, ChronoField.HOUR_OF_DAY),
+						get(temporalAccessor, ChronoField.MINUTE_OF_HOUR),
+						get(temporalAccessor, ChronoField.SECOND_OF_MINUTE),
+						get(temporalAccessor, ChronoField.NANO_OF_SECOND)
+				);
+			}
+
+			result = toInstant(result1);
 		}
 
 		return result;

@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.util.ArrayUtil;
-
 import java.util.Calendar;
 
 /**
@@ -85,7 +83,14 @@ public class DateModifier {
 		final int endField = truncateMillisecond ? Calendar.SECOND : Calendar.MILLISECOND;
 		// 循环处理各级字段，精确到毫秒字段
 		for (int i = dateField + 1; i <= endField; i++) {
-			if (ArrayUtil.contains(IGNORE_FIELDS, i)) {
+			int result = -1;
+			for (int i1 = 0; i1 < IGNORE_FIELDS.length; i1++) {
+				if (i == IGNORE_FIELDS[i1]) {
+					result = i1;
+					break;
+				}
+			}
+			if (result > -1) {
 				// 忽略无关字段（WEEK_OF_MONTH）始终不做修改
 				continue;
 			}

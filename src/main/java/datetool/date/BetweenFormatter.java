@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.text.CharSequenceUtil;
-
 import java.io.Serializable;
 
 /**
@@ -95,7 +93,7 @@ public class BetweenFormatter implements Serializable {
 			}
 		}
 
-		if (CharSequenceUtil.isEmpty(sb)) {
+        if (sb == null || ((CharSequence) sb).length() == 0) {
 			sb.append(0).append(this.level.name);
 		}
 

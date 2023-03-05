@@ -1,12 +1,8 @@
 package datetool.date;
 
-import datetool.collection.CollUtil;
-import datetool.comparator.CompareUtil;
 import datetool.date.format.*;
 import datetool.lang.Assert;
-import datetool.lang.PatternPool;
 import datetool.text.CharSequenceUtil;
-import datetool.util.ReUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -16,16 +12,17 @@ import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * 时间工具类
  *
  * @author xiaoleilu
- * @see LocalDateTimeUtil java8日志工具类
  * @see DatePattern 日期常用格式工具类
  */
 public class DateUtil extends CalendarUtil {
@@ -474,28 +471,6 @@ public class DateUtil extends CalendarUtil {
     // ------------------------------------ Format start ----------------------------------------------
 
     /**
-     * 格式化日期时间<br>
-     * 格式 yyyy-MM-dd HH:mm:ss
-     *
-     * @param localDateTime 被格式化的日期
-     * @return 格式化后的字符串
-     */
-    public static String formatLocalDateTime(LocalDateTime localDateTime) {
-        return LocalDateTimeUtil.formatNormal(localDateTime);
-    }
-
-    /**
-     * 根据特定格式格式化日期
-     *
-     * @param localDateTime 被格式化的日期
-     * @param format        日期格式，常用格式见： {@link DatePattern}
-     * @return 格式化后的字符串
-     */
-    public static String format(LocalDateTime localDateTime, String format) {
-        return LocalDateTimeUtil.format(localDateTime, format);
-    }
-
-    /**
      * 根据特定格式格式化日期
      *
      * @param date   被格式化的日期
@@ -503,7 +478,17 @@ public class DateUtil extends CalendarUtil {
      * @return 格式化后的字符串
      */
     public static String format(Date date, String format) {
-        if (null == date || CharSequenceUtil.isBlank(format)) {
+        boolean result = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (format != null && format.length() != 0) {// 遍历字符
+            for (int i = 0; i < format.length(); i++) {
+                if (!Character.isWhitespace(format.charAt(i))) {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        if (null == date || result) {
             return null;
         }
 
@@ -663,31 +648,9 @@ public class DateUtil extends CalendarUtil {
     // ------------------------------------ Parse start ----------------------------------------------
 
     /**
-     * 构建LocalDateTime对象<br>
-     * 格式：yyyy-MM-dd HH:mm:ss
-     *
-     * @param dateStr 时间字符串（带格式）
-     * @return LocalDateTime对象
-     */
-    public static LocalDateTime parseLocalDateTime(CharSequence dateStr) {
-        return parseLocalDateTime(dateStr, DatePattern.NORM_DATETIME_PATTERN);
-    }
-
-    /**
-     * 构建LocalDateTime对象
-     *
-     * @param dateStr 时间字符串（带格式）
-     * @param format  使用{@link DatePattern}定义的格式
-     * @return LocalDateTime对象
-     */
-    public static LocalDateTime parseLocalDateTime(CharSequence dateStr, String format) {
-        return LocalDateTimeUtil.parse(dateStr, format);
-    }
-
-    /**
      * 构建DateTime对象
      *
-     * @param dateStr    Date字符串
+     * @param dateStr   Date字符串
      * @param dateStyle 格式化器 {@link SimpleDateFormat}
      * @return DateTime对象
      */
@@ -828,7 +791,16 @@ public class DateUtil extends CalendarUtil {
      */
     public static DateTime parseTimeToday(CharSequence timeString) {
         timeString = CharSequenceUtil.format("{} {}", today(), timeString);
-        if (1 == CharSequenceUtil.count(timeString, ':')) {
+        int count = 0;
+        if (timeString.length() != 0) {
+            int contentLength = timeString.length();
+            for (int i = 0; i < contentLength; i++) {
+                if (':' == timeString.charAt(i)) {
+                    count++;
+                }
+            }
+        }
+        if (1 == count) {
             // 时间格式为 HH:mm
             return parse(timeString, DatePattern.NORM_DATETIME_MINUTE_PATTERN);
         } else {
@@ -872,17 +844,46 @@ public class DateUtil extends CalendarUtil {
         } else if (utcString.contains("+")) {
             // 去除类似2019-06-01T19:45:43 +08:00加号前的空格
             utcString = utcString.replace(" +", "+");
-            final String zoneOffset = CharSequenceUtil.subAfter(utcString, '+', true);
-            if (CharSequenceUtil.isBlank(zoneOffset)) {
+            String zoneOffset;
+            if (utcString.length() == 0) {
+                zoneOffset = "";
+            } else {
+                final int pos1 = (utcString).lastIndexOf('+');
+                if (-1 == pos1) {
+                    zoneOffset = "";
+                } else {
+                    zoneOffset = (utcString).substring(pos1 + 1);
+                }
+            }
+            boolean result = true;
+            // 判断的时候，并将cs的长度赋给了strLen
+            if (zoneOffset.length() != 0) {// 遍历字符
+                for (int i = 0; i < zoneOffset.length(); i++) {
+                    if (!Character.isWhitespace(zoneOffset.charAt(i))) {
+                        result = false;
+                        break;
+                    }
+                }
+            }
+            if (result) {
                 throw new DateException("Invalid format: [{}]", utcString);
             }
             if (!zoneOffset.contains(":")) {
                 // +0800转换为+08:00
-                final String pre = CharSequenceUtil.subBefore(utcString, '+', true);
+                String pre;
+                final int pos = utcString.lastIndexOf('+');
+                if (-1 == pos) {
+                    pre = utcString;
+                } else if (0 == pos) {
+                    pre = "";
+                } else {
+                    pre = utcString.substring(0, pos);
+                }
+
                 utcString = pre + "+" + zoneOffset.substring(0, 2) + ":" + "00";
             }
 
-            if (utcString.contains("." )) {
+            if (utcString.contains(".")) {
                 // 带毫秒，格式类似：2018-09-13T05:34:31.999+08:00
                 utcString = normalizeMillSeconds(utcString, ".", "+");
                 return parse(utcString, DatePattern.UTC_MS_WITH_XXX_OFFSET_FORMAT);
@@ -890,39 +891,45 @@ public class DateUtil extends CalendarUtil {
                 // 格式类似：2018-09-13T05:34:31+08:00
                 return parse(utcString, DatePattern.UTC_WITH_XXX_OFFSET_FORMAT);
             }
-        } else if (ReUtil.contains("-\\d{2}:?00", utcString)) {
-            // Issue#2612，类似 2022-09-14T23:59:00-08:00 或者 2022-09-14T23:59:00-0800
-
-            // 去除类似2019-06-01T19:45:43 -08:00加号前的空格
-            utcString = utcString.replace(" -", "-");
-            if (':' != utcString.charAt(utcString.length() - 3)) {
-                utcString = utcString.substring(0, utcString.length() - 2) + ":00";
-            }
-
-            if (utcString.contains(".")) {
-                // 带毫秒，格式类似：2018-09-13T05:34:31.999-08:00
-                utcString = normalizeMillSeconds(utcString, ".", "-");
-                return new DateTime(utcString, DatePattern.UTC_MS_WITH_XXX_OFFSET_FORMAT);
-            } else {
-                // 格式类似：2018-09-13T05:34:31-08:00
-                return new DateTime(utcString, DatePattern.UTC_WITH_XXX_OFFSET_FORMAT);
-            }
         } else {
-            if (length == DatePattern.UTC_SIMPLE_PATTERN.length() - 2) {
-                // 格式类似：2018-09-13T05:34:31
-                return parse(utcString, DatePattern.UTC_SIMPLE_FORMAT);
-            } else if (length == DatePattern.UTC_SIMPLE_PATTERN.length() - 5) {
-                // 格式类似：2018-09-13T05:34
-                return parse(utcString + ":00", DatePattern.UTC_SIMPLE_FORMAT);
-            } else if (utcString.contains("." )) {
-                // 可能为：  2021-03-17T06:31:33.99
-                utcString = normalizeMillSeconds(utcString, ".", null);
-                return parse(utcString, DatePattern.UTC_SIMPLE_MS_FORMAT);
+            boolean contains;
+            final Pattern pattern = new ConcurrentHashMap<RegexWithFlag, Pattern>().computeIfAbsent(new RegexWithFlag("-\\d{2}:?00", Pattern.DOTALL), (key) -> Pattern.compile("-\\d{2}:?00", Pattern.DOTALL));
+            contains = pattern.matcher(utcString).find();
+            if (contains) {
+                // Issue#2612，类似 2022-09-14T23:59:00-08:00 或者 2022-09-14T23:59:00-0800
+
+                // 去除类似2019-06-01T19:45:43 -08:00加号前的空格
+                utcString = utcString.replace(" -", "-");
+                if (':' != utcString.charAt(utcString.length() - 3)) {
+                    utcString = utcString.substring(0, utcString.length() - 2) + ":00";
+                }
+
+                if (utcString.contains(".")) {
+                    // 带毫秒，格式类似：2018-09-13T05:34:31.999-08:00
+                    utcString = normalizeMillSeconds(utcString, ".", "-");
+                    return new DateTime(utcString, DatePattern.UTC_MS_WITH_XXX_OFFSET_FORMAT);
+                } else {
+                    // 格式类似：2018-09-13T05:34:31-08:00
+                    return new DateTime(utcString, DatePattern.UTC_WITH_XXX_OFFSET_FORMAT);
+                }
+            } else {
+                if (length == DatePattern.UTC_SIMPLE_PATTERN.length() - 2) {
+                    // 格式类似：2018-09-13T05:34:31
+                    return parse(utcString, DatePattern.UTC_SIMPLE_FORMAT);
+                } else if (length == DatePattern.UTC_SIMPLE_PATTERN.length() - 5) {
+                    // 格式类似：2018-09-13T05:34
+                    return parse(utcString + ":00", DatePattern.UTC_SIMPLE_FORMAT);
+                } else if (utcString.contains(".")) {
+                    // 可能为：  2021-03-17T06:31:33.99
+                    utcString = normalizeMillSeconds(utcString, ".", null);
+                    return parse(utcString, DatePattern.UTC_SIMPLE_MS_FORMAT);
+                }
             }
         }
         // 没有更多匹配的时间格式
         throw new DateException("No format fit for date String [{}] !", utcString);
     }
+
 
     /**
      * 解析CST时间，格式：<br>
@@ -972,15 +979,147 @@ public class DateUtil extends CalendarUtil {
      * @return 日期
      */
     public static DateTime parse(CharSequence dateCharSequence) {
-        if (CharSequenceUtil.isBlank(dateCharSequence)) {
+        boolean result1 = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (dateCharSequence != null && dateCharSequence.length() != 0) {// 遍历字符
+            for (int i2 = 0; i2 < dateCharSequence.length(); i2++) {
+                if (!Character.isWhitespace(dateCharSequence.charAt(i2))) {
+                    result1 = false;
+                    break;
+                }
+            }
+        }
+        if (result1) {
             return null;
         }
         String dateStr = dateCharSequence.toString();
         // 去掉两边空格并去掉中文日期中的“日”和“秒”，以规范长度
-        dateStr = CharSequenceUtil.removeAll(dateStr.trim(), '日', '秒');
+        String str = dateStr.trim();
+        char[] chars = new char[]{'日', '秒'};
+        final int len = str.length();
+        if (0 == len) {
+            dateStr = str;
+        } else {
+            dateStr = str.chars().filter(oneChar -> {
+                for (char aChar : chars) {
+                    if (oneChar == aChar) {
+                        return false;
+                    }
+                }
+                return true;
+            }).toString();
+        }
         int length = dateStr.length();
 
-        if (isNumber(dateStr)) {
+        boolean isNumber = false;
+        boolean finished = false;
+        boolean result = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (dateStr.length() != 0) {// 遍历字符
+            for (int i1 = 0; i1 < dateStr.length(); i1++) {
+                if (!Character.isWhitespace(dateStr.charAt(i1))) {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        if (!result) {
+            char[] chars1 = dateStr.toCharArray();
+            int sz = chars1.length;
+            boolean hasExp = false;
+            boolean hasDecPoint = false;
+            boolean allowSigns = false;
+            boolean foundDigit = false;// deal with any possible sign up front
+            int start = (chars1[0] == '-' || chars1[0] == '+') ? 1 : 0;
+            if (sz > start + 1) {
+                if (chars1[start] == '0' && (chars1[start + 1] == 'x' || chars1[start + 1] == 'X')) {
+                    int i = start + 2;
+                    if (i == sz) {
+                        finished = true;// str == "0x"
+                    } else {// checking hex (it can't be anything else)
+                        for (; i < chars1.length; i++) {
+                            if ((chars1[i] < '0' || chars1[i] > '9') && (chars1[i] < 'a' || chars1[i] > 'f') && (chars1[i] < 'A' || chars1[i] > 'F')) {
+                                finished = true;
+                                break;
+                            }
+                        }
+                        if (!finished) {
+                            isNumber = true;
+                            finished = true;
+                        }
+                    }
+                }
+            }
+            if (!finished) {
+                sz--; // don't want to loop to the last char, check it afterwords
+// for type qualifiers
+                int i = start;// loop to the next to last char or to the last char if we need another digit to
+// make a valid number (e.g. chars[0..5] = "1234E")
+                while (i < sz || (i < sz + 1 && allowSigns && !foundDigit)) {
+                    if (chars1[i] >= '0' && chars1[i] <= '9') {
+                        foundDigit = true;
+                        allowSigns = false;
+
+                    } else if (chars1[i] == '.') {
+                        if (hasDecPoint || hasExp) {
+                            // two decimal points or dec in exponent
+                            finished = true;
+                            break;
+                        }
+                        hasDecPoint = true;
+                    } else if (chars1[i] == 'e' || chars1[i] == 'E') {
+                        // we've already taken care of hex.
+                        if (hasExp) {
+                            // two E's
+                            finished = true;
+                            break;
+                        }
+                        if (!foundDigit) {
+                            finished = true;
+                            break;
+                        }
+                        hasExp = true;
+                        allowSigns = true;
+                    } else if (chars1[i] == '+' || chars1[i] == '-') {
+                        if (!allowSigns) {
+                            finished = true;
+                            break;
+                        }
+                        allowSigns = false;
+                        foundDigit = false; // we need a digit after the E
+                    } else {
+                        finished = true;
+                        break;
+                    }
+                    i++;
+                }
+                if (!finished) {
+                    if (i < chars1.length) {
+                        if (chars1[i] >= '0' && chars1[i] <= '9') {
+                            // no type qualifier, OK
+                            isNumber = true;
+                        } else if (chars1[i] != 'e' && chars1[i] != 'E') {
+                            if (chars1[i] == '.') {
+                                // two decimal points or dec in exponent
+                                if (!hasDecPoint && !hasExp) {// single trailing decimal point after non-exponent is ok
+                                    isNumber = foundDigit;
+                                }
+                            } else if (!allowSigns && (chars1[i] == 'd' || chars1[i] == 'D' || chars1[i] == 'f' || chars1[i] == 'F')) {
+                                isNumber = foundDigit;
+                            } else if (chars1[i] == 'l' || chars1[i] == 'L') {
+                                // not allowing L with an exponent
+                                isNumber = foundDigit && !hasExp;
+                            } // last character is illegal
+
+                        }
+                    } else {// allowSigns is true iff the val ends in 'E'
+// found digit it to make sure weird stuff like '.' and '1E-' doesn't pass
+                        isNumber = !allowSigns && foundDigit;
+                    }
+                }
+            }
+        }
+        if (isNumber) {
             // 纯数字形式
             if (length == DatePattern.PURE_DATETIME_PATTERN.length()) {
                 return parse(dateStr, DatePattern.PURE_DATETIME_FORMAT);
@@ -991,24 +1130,39 @@ public class DateUtil extends CalendarUtil {
             } else if (length == DatePattern.PURE_TIME_PATTERN.length()) {
                 return parse(dateStr, DatePattern.PURE_TIME_FORMAT);
             }
-        } else if (ReUtil.isMatch(PatternPool.TIME, dateStr)) {
-            // HH:mm:ss 或者 HH:mm 时间格式匹配单独解析
-            return parseTimeToday(dateStr);
-        } else if (Arrays.stream(wtb).anyMatch(dateStr::contains)) {
-            // JDK的Date对象toString默认格式，类似于：
-            // Tue Jun 4 16:25:15 +0800 2019
-            // Thu May 16 17:57:18 GMT+08:00 2019
-            // Wed Aug 01 00:00:00 CST 2012
-            return parseCST(dateStr);
-        } else if (dateStr.contains("T")) {
-            // UTC时间
-            return parseUTC(dateStr);
+        } else {
+            if (Pattern.compile("\\d{1,2}:\\d{1,2}(:\\d{1,2})?").matcher(dateStr).matches()) {
+                // HH:mm:ss 或者 HH:mm 时间格式匹配单独解析
+                return parseTimeToday(dateStr);
+            } else if (Arrays.stream(wtb).anyMatch(dateStr::contains)) {
+                // JDK的Date对象toString默认格式，类似于：
+                // Tue Jun 4 16:25:15 +0800 2019
+                // Thu May 16 17:57:18 GMT+08:00 2019
+                // Wed Aug 01 00:00:00 CST 2012
+                return parseCST(dateStr);
+            } else if (dateStr.contains("T")) {
+                // UTC时间
+                return parseUTC(dateStr);
+            }
         }
 
         //标准日期格式（包括单个数字的日期时间）
         dateStr = normalize(dateStr);
-        if (ReUtil.isMatch(DatePattern.REGEX_NORM, dateStr)) {
-            final int colonCount = CharSequenceUtil.count(dateStr, ':');
+        boolean match = false;
+        // 提供null的字符串为不匹配
+        if (dateStr != null) {
+            match = DatePattern.REGEX_NORM.matcher(dateStr).matches();
+        }
+        if (match) {
+            int colonCount = 0;
+            if (((CharSequence) dateStr).length() != 0) {
+                int contentLength = ((CharSequence) dateStr).length();
+                for (int i = 0; i < contentLength; i++) {
+                    if (':' == ((CharSequence) dateStr).charAt(i)) {
+                        colonCount++;
+                    }
+                }
+            }
             switch (colonCount) {
                 case 0:
                     // yyyy-MM-dd
@@ -1713,13 +1867,13 @@ public class DateUtil extends CalendarUtil {
      * @since 3.1.2
      */
     public static int timeToSecond(String timeStr) {
-        if (CharSequenceUtil.isEmpty(timeStr)) {
+        if (timeStr == null || timeStr.length() == 0) {
             return 0;
         }
 
-        final List<String> hms = Arrays.stream(timeStr.split(""+  ':'))
+        final List<String> hms = Arrays.stream(timeStr.split("" + ':'))
                 .map(String::trim)
-                .filter(str->!"".equals(str))
+                .filter(str -> !"".equals(str))
                 .limit(3)
                 .collect(Collectors.toList());
 
@@ -1789,8 +1943,26 @@ public class DateUtil extends CalendarUtil {
      * @since 5.7.21
      */
     public static List<DateTime> rangeContains(DateRange start, DateRange end) {
-        List<DateTime> startDateTimes = CollUtil.newArrayList(start);
-        List<DateTime> endDateTimes = CollUtil.newArrayList(end);
+        List<DateTime> startDateTimes;
+        ArrayList<DateTime> arrayList = new ArrayList<>();
+        if (null == start) {
+            startDateTimes = arrayList;
+        } else {
+            for (DateTime t : start) {
+                arrayList.add(t);
+            }
+            startDateTimes = arrayList;
+        }
+        List<DateTime> endDateTimes;
+        ArrayList<DateTime> arrayList1 = new ArrayList<>();
+        if (null == end) {
+            endDateTimes = arrayList1;
+        } else {
+            for (DateTime t : end) {
+                arrayList1.add(t);
+            }
+            endDateTimes = arrayList1;
+        }
         return startDateTimes.stream().filter(endDateTimes::contains).collect(Collectors.toList());
     }
 
@@ -1804,8 +1976,26 @@ public class DateUtil extends CalendarUtil {
      * @since 5.7.21
      */
     public static List<DateTime> rangeNotContains(DateRange start, DateRange end) {
-        List<DateTime> startDateTimes = CollUtil.newArrayList(start);
-        List<DateTime> endDateTimes = CollUtil.newArrayList(end);
+        List<DateTime> startDateTimes;
+        ArrayList<DateTime> arrayList = new ArrayList<>();
+        if (null == start) {
+            startDateTimes = arrayList;
+        } else {
+            for (DateTime t : start) {
+                arrayList.add(t);
+            }
+            startDateTimes = arrayList;
+        }
+        List<DateTime> endDateTimes;
+        ArrayList<DateTime> arrayList1 = new ArrayList<>();
+        if (null == end) {
+            endDateTimes = arrayList1;
+        } else {
+            for (DateTime t : end) {
+                arrayList1.add(t);
+            }
+            endDateTimes = arrayList1;
+        }
         return endDateTimes.stream().filter(item -> !startDateTimes.contains(item)).collect(Collectors.toList());
     }
 
@@ -1856,7 +2046,12 @@ public class DateUtil extends CalendarUtil {
      * @return {@link DateRange}
      */
     public static List<DateTime> rangeToList(Date start, Date end, DateField unit) {
-        return CollUtil.newArrayList(range(start, end, unit));
+        Iterable<DateTime> iterable = range(start, end, unit);
+        ArrayList<DateTime> arrayList = new ArrayList<>();
+        for (DateTime t : iterable) {
+            arrayList.add(t);
+        }
+        return arrayList;
     }
 
     /**
@@ -1870,7 +2065,12 @@ public class DateUtil extends CalendarUtil {
      * @since 5.7.16
      */
     public static List<DateTime> rangeToList(Date start, Date end, final DateField unit, int step) {
-        return CollUtil.newArrayList(new DateRange(start, end, unit, step));
+        Iterable<DateTime> iterable = new DateRange(start, end, unit, step);
+        ArrayList<DateTime> arrayList = new ArrayList<>();
+        for (DateTime t : iterable) {
+            arrayList.add(t);
+        }
+        return arrayList;
     }
 
     /**
@@ -1882,7 +2082,14 @@ public class DateUtil extends CalendarUtil {
      * @since 4.6.2
      */
     public static int compare(Date date1, Date date2) {
-        return CompareUtil.compare(date1, date2);
+        if (date1 == date2) {
+            return 0;
+        } else if (date1 == null) {
+            return -1;
+        } else if (date2 == null) {
+            return 1;
+        }
+        return date1.compareTo(date2);
     }
 
     /**
@@ -1904,7 +2111,14 @@ public class DateUtil extends CalendarUtil {
                 date2 = parse(format(date2, format), format);
             }
         }
-        return CompareUtil.compare(date1, date2);
+        if (date1 == date2) {
+            return 0;
+        } else if (date1 == null) {
+            return -1;
+        } else if (date2 == null) {
+            return 1;
+        }
+        return date1.compareTo(date2);
     }
 
     /**
@@ -1949,30 +2163,6 @@ public class DateUtil extends CalendarUtil {
      */
     public static Instant toInstant(TemporalAccessor temporalAccessor) {
         return TemporalAccessorUtil.toInstant(temporalAccessor);
-    }
-
-    /**
-     * {@link Instant} 转换为 {@link LocalDateTime}，使用系统默认时区
-     *
-     * @param instant {@link Instant}
-     * @return {@link LocalDateTime}
-     * @see LocalDateTimeUtil#of(Instant)
-     * @since 5.0.5
-     */
-    public static LocalDateTime toLocalDateTime(Instant instant) {
-        return LocalDateTimeUtil.of(instant);
-    }
-
-    /**
-     * {@link Date} 转换为 {@link LocalDateTime}，使用系统默认时区
-     *
-     * @param date {@link Date}
-     * @return {@link LocalDateTime}
-     * @see LocalDateTimeUtil#of(Date)
-     * @since 5.0.5
-     */
-    public static LocalDateTime toLocalDateTime(Date date) {
-        return LocalDateTimeUtil.of(date);
     }
 
     /**
@@ -2151,33 +2341,56 @@ public class DateUtil extends CalendarUtil {
      * @return 格式化后的日期字符串
      */
     private static String normalize(CharSequence dateStr) {
-        if (CharSequenceUtil.isBlank(dateStr)) {
-            return CharSequenceUtil.str(dateStr);
+        boolean result1 = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (dateStr != null && dateStr.length() != 0) {// 遍历字符
+            for (int i = 0; i < dateStr.length(); i++) {
+                if (!Character.isWhitespace(dateStr.charAt(i))) {
+                    result1 = false;
+                    break;
+                }
+            }
+        }
+        if (result1) {
+            return null == dateStr ? null : dateStr.toString();
         }
 
         // 日期时间分开处理
-        final List<String> dateAndTime = Arrays.stream((""+dateStr).split(" "))
+        final List<String> dateAndTime = Arrays.stream(("" + dateStr).split(" "))
                 .map(String::trim)
-                .filter(str->!"".equals(str))
+                .filter(str -> !"".equals(str))
                 .collect(Collectors.toList());
         final int size = dateAndTime.size();
         if (size < 1 || size > 2) {
             // 非可被标准处理的格式
-            return CharSequenceUtil.str(dateStr);
+            return dateStr.toString();
         }
 
         final StringBuilder builder = new StringBuilder();
 
         // 日期部分（"\"、"/"、"."、"年"、"月"都替换为"-"）
         String datePart = dateAndTime.get(0).replaceAll("[/.年月]", "-");
-        datePart = CharSequenceUtil.removeSuffix(datePart, "日");
-        builder.append(datePart);
+        String result;
+        if (datePart.length() == 0) {
+            result = datePart;
+        } else {
+            if (datePart.endsWith("日")) {
+                result = CharSequenceUtil.subPre(datePart, datePart.length() - 1);// 截取前半段
+            } else {
+                result = datePart;
+            }
+        }
+        builder.append(result);
 
         // 时间部分
         if (size == 2) {
             builder.append(' ');
             String timePart = dateAndTime.get(1).replaceAll("[时分秒]", ":");
-            timePart = CharSequenceUtil.removeSuffix(timePart, ":");
+            if (timePart.length() != 0) {
+                if (timePart.endsWith(":")) {
+                    timePart = CharSequenceUtil.subPre(timePart, timePart.length() - 1);// 截取前半段
+                }
+            }
             //将ISO8601中的逗号替换为.
             timePart = timePart.replace(',', '.');
             builder.append(timePart);
@@ -2196,124 +2409,135 @@ public class DateUtil extends CalendarUtil {
      * @return 规范之后的毫秒部分
      */
     private static String normalizeMillSeconds(String dateStr, CharSequence before, CharSequence after) {
-        if (CharSequenceUtil.isBlank(after)) {
-            String millOrNaco = CharSequenceUtil.subPre(CharSequenceUtil.subAfter(dateStr, before, true), 3);
-            return CharSequenceUtil.subBefore(dateStr, before, true) + before + millOrNaco;
+        boolean result2 = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (after != null && after.length() != 0) {// 遍历字符
+            for (int i = 0; i < after.length(); i++) {
+                if (!Character.isWhitespace(after.charAt(i))) {
+                    result2 = false;
+                    break;
+                }
+            }
         }
-        String millOrNaco = CharSequenceUtil.subPre(CharSequenceUtil.subBetween(dateStr, before, after), 3);
-        return CharSequenceUtil.subBefore(dateStr, before, true)
+        if (result2) {
+            String result1 = "";
+            if (dateStr == null || dateStr.length() == 0) {
+                result1 = null == dateStr ? null : "";
+            } else if (before != null) {
+                final String sep1 = before.toString();
+                final int pos1 = dateStr.lastIndexOf(sep1);
+                if (-1 != pos1 && (dateStr.length() - 1) != pos1) {
+                    result1 = dateStr.substring(pos1 + before.length());
+                }
+            }
+            String millOrNaco = CharSequenceUtil.subPre(result1, 3);
+            String result = "";
+            if (dateStr == null || dateStr.length() == 0 || before == null) {
+                result = dateStr;
+            } else {
+                final String sep = before.toString();
+                if (!sep.isEmpty()) {
+                    final int pos = dateStr.lastIndexOf(sep);
+                    if (-1 == pos) {
+                        result = dateStr;
+                    } else if (0 != pos) {
+                        result = dateStr.substring(0, pos);
+                    }
+                }
+            }
+            return result + before + millOrNaco;
+        }
+        String subBetween = null;
+        if (dateStr != null && before != null) {
+            final String before2 = before.toString();
+            final String after2 = after.toString();
+            final int start = dateStr.indexOf(before2);
+            if (start != -1) {
+                final int end = dateStr.indexOf(after2, start + before2.length());
+                if (end != -1) {
+                    subBetween = dateStr.substring(start + before2.length(), end);
+                }
+            }
+        }
+        String millOrNaco = CharSequenceUtil.subPre(subBetween, 3);
+        String result = "";
+        if (dateStr == null || dateStr.length() == 0 || before == null) {
+            result = dateStr;
+        } else {
+            final String sep = before.toString();
+            if (!sep.isEmpty()) {
+                final int pos = dateStr.lastIndexOf(sep);
+                if (-1 == pos) {
+                    result = dateStr;
+                } else if (0 != pos) {
+                    result = dateStr.substring(0, pos);
+                }
+            }
+        }
+        String result1 = "";
+        if (dateStr == null || dateStr.length() == 0) {
+            result1 = null == dateStr ? null : "";
+        } else {
+            final String sep = after.toString();
+            final int pos = dateStr.lastIndexOf(sep);
+            if (-1 != pos && (dateStr.length() - 1) != pos) {
+                result1 = dateStr.substring(pos + after.length());
+            }
+        }
+        return result
                 + before
-                + millOrNaco + after + CharSequenceUtil.subAfter(dateStr, after, true);
+                + millOrNaco + after + result1;
     }
 
     /**
-     * 是否为数字，支持包括：
+     * 正则表达式和正则标识位的包装
      *
-     * <pre>
-     * 1、10进制
-     * 2、16进制数字（0x开头）
-     * 3、科学计数法形式（1234E3）
-     * 4、类型标识形式（123D）
-     * 5、正负数标识形式（+123、-234）
-     * </pre>
-     *
-     * @param str 字符串值
-     * @return 是否为数字
+     * @author Looly
      */
-    private static boolean isNumber(CharSequence str) {
-        if (CharSequenceUtil.isBlank(str)) {
-            return false;
-        }
-        char[] chars = str.toString().toCharArray();
-        int sz = chars.length;
-        boolean hasExp = false;
-        boolean hasDecPoint = false;
-        boolean allowSigns = false;
-        boolean foundDigit = false;
-        // deal with any possible sign up front
-        int start = (chars[0] == '-' || chars[0] == '+') ? 1 : 0;
-        if (sz > start + 1) {
-            if (chars[start] == '0' && (chars[start + 1] == 'x' || chars[start + 1] == 'X')) {
-                int i = start + 2;
-                if (i == sz) {
-                    return false; // str == "0x"
-                }
-                // checking hex (it can't be anything else)
-                for (; i < chars.length; i++) {
-                    if ((chars[i] < '0' || chars[i] > '9') && (chars[i] < 'a' || chars[i] > 'f') && (chars[i] < 'A' || chars[i] > 'F')) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-        sz--; // don't want to loop to the last char, check it afterwords
-        // for type qualifiers
-        int i = start;
-        // loop to the next to last char or to the last char if we need another digit to
-        // make a valid number (e.g. chars[0..5] = "1234E")
-        while (i < sz || (i < sz + 1 && allowSigns && !foundDigit)) {
-            if (chars[i] >= '0' && chars[i] <= '9') {
-                foundDigit = true;
-                allowSigns = false;
+    private static class RegexWithFlag {
+        private final String regex;
+        private final int flag;
 
-            } else if (chars[i] == '.') {
-                if (hasDecPoint || hasExp) {
-                    // two decimal points or dec in exponent
-                    return false;
-                }
-                hasDecPoint = true;
-            } else if (chars[i] == 'e' || chars[i] == 'E') {
-                // we've already taken care of hex.
-                if (hasExp) {
-                    // two E's
-                    return false;
-                }
-                if (!foundDigit) {
-                    return false;
-                }
-                hasExp = true;
-                allowSigns = true;
-            } else if (chars[i] == '+' || chars[i] == '-') {
-                if (!allowSigns) {
-                    return false;
-                }
-                allowSigns = false;
-                foundDigit = false; // we need a digit after the E
-            } else {
-                return false;
-            }
-            i++;
+        /**
+         * 构造
+         *
+         * @param regex 正则
+         * @param flag  标识
+         */
+        public RegexWithFlag(String regex, int flag) {
+            this.regex = regex;
+            this.flag = flag;
         }
-        if (i < chars.length) {
-            if (chars[i] >= '0' && chars[i] <= '9') {
-                // no type qualifier, OK
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + flag;
+            result = prime * result + ((regex == null) ? 0 : regex.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
                 return true;
             }
-            if (chars[i] == 'e' || chars[i] == 'E') {
-                // can't have an E at the last byte
+            if (obj == null) {
                 return false;
             }
-            if (chars[i] == '.') {
-                if (hasDecPoint || hasExp) {
-                    // two decimal points or dec in exponent
-                    return false;
-                }
-                // single trailing decimal point after non-exponent is ok
-                return foundDigit;
+            if (getClass() != obj.getClass()) {
+                return false;
             }
-            if (!allowSigns && (chars[i] == 'd' || chars[i] == 'D' || chars[i] == 'f' || chars[i] == 'F')) {
-                return foundDigit;
+            RegexWithFlag other = (RegexWithFlag) obj;
+            if (flag != other.flag) {
+                return false;
             }
-            if (chars[i] == 'l' || chars[i] == 'L') {
-                // not allowing L with an exponent
-                return foundDigit && !hasExp;
+            if (regex == null) {
+                return other.regex == null;
+            } else {
+                return regex.equals(other.regex);
             }
-            // last character is illegal
-            return false;
         }
-        // allowSigns is true iff the val ends in 'E'
-        // found digit it to make sure weird stuff like '.' and '1E-' doesn't pass
-        return !allowSigns && foundDigit;
     }
 }

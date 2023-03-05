@@ -130,10 +130,19 @@ public class Assert {
 	 * @param errorMsgSupplier 错误抛出异常附带的消息生产接口
 	 * @return 非空字符串
 	 * @throws X 被检查字符串为空白
-	 * @see CharSequenceUtil#isNotBlank(CharSequence)
 	 */
 	public static <T extends CharSequence, X extends Throwable> T notBlank(T text, Supplier<X> errorMsgSupplier) throws X {
-		if (CharSequenceUtil.isBlank(text)) {
+		boolean result = true;
+		// 判断的时候，并将cs的长度赋给了strLen
+		if (text != null && text.length() != 0) {// 遍历字符
+			for (int i = 0; i < text.length(); i++) {
+				if (!Character.isWhitespace(text.charAt(i))) {
+					result = false;
+					break;
+				}
+			}
+		}
+		if (result) {
 			throw errorMsgSupplier.get();
 		}
 		return text;
@@ -152,7 +161,6 @@ public class Assert {
 	 * @param params           参数
 	 * @return 非空字符串
 	 * @throws IllegalArgumentException 被检查字符串为空白
-	 * @see CharSequenceUtil#isNotBlank(CharSequence)
 	 */
 	public static <T extends CharSequence> T notBlank(T text, String errorMsgTemplate, Object... params) throws IllegalArgumentException {
 		return notBlank(text, () -> new IllegalArgumentException(CharSequenceUtil.format(errorMsgTemplate, params)));
@@ -169,7 +177,6 @@ public class Assert {
 	 * @param text 被检查字符串
 	 * @return 非空字符串
 	 * @throws IllegalArgumentException 被检查字符串为空白
-	 * @see CharSequenceUtil#isNotBlank(CharSequence)
 	 */
 	public static <T extends CharSequence> T notBlank(T text) throws IllegalArgumentException {
 		return notBlank(text, "[Assertion failed] - this String argument must have text; it must not be null, empty, or blank");

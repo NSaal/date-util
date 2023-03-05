@@ -832,28 +832,6 @@ public class DateUtilTest {
 	}
 
 	@Test
-	public void localDateTimeTest() {
-		// 测试字符串与LocalDateTime的互相转换
-		final String strDate = "2019-12-01 17:02:30";
-		LocalDateTime ldt = DateUtil.parseLocalDateTime(strDate);
-		String strDate1 = DateUtil.formatLocalDateTime(ldt);
-		Assert.assertEquals(strDate, strDate1);
-
-		final String strDate2 = "2019-12-01 17:02:30.111";
-		ldt = DateUtil.parseLocalDateTime(strDate2, DatePattern.NORM_DATETIME_MS_PATTERN);
-		strDate1 = DateUtil.format(ldt, DatePattern.NORM_DATETIME_PATTERN);
-		Assert.assertEquals(strDate, strDate1);
-	}
-
-	@Test
-	public void localDateTimeTest2() {
-		// 测试字符串与LocalDateTime的互相转换
-		final String strDate = "2019-12-01";
-		final LocalDateTime localDateTime = DateUtil.parseLocalDateTime(strDate, "yyyy-MM-dd");
-		Assert.assertEquals(strDate, DateUtil.format(localDateTime, DatePattern.NORM_DATE_PATTERN));
-	}
-
-	@Test
 	public void betweenWeekTest() {
 		final DateTime start = DateUtil.parse("2019-03-05");
 		final DateTime end = DateUtil.parse("2019-10-05");
@@ -933,10 +911,6 @@ public class DateUtilTest {
 	public void formatNormDateTimeFormatterTest() {
 		String format = DateUtil.format(DateUtil.parse("2021-07-14 10:05:38"), DatePattern.NORM_DATETIME_FORMATTER);
 		Assert.assertEquals("2021-07-14 10:05:38", format);
-
-		format = DateUtil.format(LocalDateTimeUtil.parse("2021-07-14T10:05:38"),
-				"yyyy-MM-dd HH:mm:ss");
-		Assert.assertEquals("2021-07-14 10:05:38", format);
 	}
 
 	@Test
@@ -959,12 +933,6 @@ public class DateUtilTest {
 		parse = DateUtil.parse("2021-1-22 00:00:00");
 		Assert.assertNotNull(parse);
 		Assert.assertEquals("2021-01-22 00:00:00", parse.toString());
-	}
-
-	@Test
-	public void parseByDateTimeFormatterTest() {
-		final DateTime parse = DateUtil.parse("2021-12-01", DatePattern.NORM_DATE_FORMATTER);
-		Assert.assertEquals("2021-12-01 00:00:00", parse.toString());
 	}
 
 	@Test

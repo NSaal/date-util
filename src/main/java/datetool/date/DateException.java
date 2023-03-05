@@ -17,7 +17,7 @@ public class DateException extends RuntimeException {
     private static String getMessage(Throwable e) {
         String message;
         if (null == e) {
-            message = CharSequenceUtil.NULL;
+            message = "null";
         } else {
             message = CharSequenceUtil.format("{}: {}", e.getClass().getSimpleName(), e.getMessage());
         }
