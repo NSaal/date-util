@@ -1,7 +1,6 @@
 package datetool.date.format;
 
 import datetool.date.DateUtil;
-import datetool.lang.Assert;
 
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
@@ -43,8 +42,12 @@ public class GlobalCustomFormat {
 	 * @param func   格式化函数
 	 */
 	public static void putFormatter(String format, Function<Date, String> func) {
-		Assert.notNull(format, "Format must be not null !");
-		Assert.notNull(func, "Function must be not null !");
+		if (null == format) {
+			throw new IllegalArgumentException(DateUtil.format("Format must be not null !"));
+		}
+		if (null == func) {
+			throw new IllegalArgumentException(DateUtil.format("Function must be not null !"));
+		}
 		formatterMap.put(format, func);
 	}
 
@@ -55,8 +58,12 @@ public class GlobalCustomFormat {
 	 * @param func   解析函数
 	 */
 	public static void putParser(String format, Function<CharSequence, Date> func) {
-		Assert.notNull(format, "Format must be not null !");
-		Assert.notNull(func, "Function must be not null !");
+		if (null == format) {
+			throw new IllegalArgumentException(DateUtil.format("Format must be not null !"));
+		}
+		if (null == func) {
+			throw new IllegalArgumentException(DateUtil.format("Function must be not null !"));
+		}
 		parserMap.put(format, func);
 	}
 

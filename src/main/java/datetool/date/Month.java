@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.lang.Assert;
-
 import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.Locale;
@@ -231,7 +229,9 @@ public enum Month {
      */
     public static int getLastDay(int month, boolean isLeapYear) {
         final Month of = of(month);
-        Assert.notNull(of, "Invalid Month base 0: " + month);
+        if (null == of) {
+            throw new IllegalArgumentException(DateUtil.format("Invalid Month base 0: " + month));
+        }
         return of.getLastDay(isLeapYear);
     }
 

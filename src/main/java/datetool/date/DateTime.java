@@ -4,7 +4,6 @@ import datetool.date.format.DateParser;
 import datetool.date.format.DatePrinter;
 import datetool.date.format.FastDateFormat;
 import datetool.date.format.GlobalCustomFormat;
-import datetool.lang.Assert;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1115,7 +1114,9 @@ public class DateTime extends Date {
      * @return {@link Calendar}
      */
     private static Calendar parse(CharSequence dateStr, DateParser parser, boolean lenient) {
-        Assert.notNull(parser, "Parser or DateFromat must be not null !");
+        if (null == parser) {
+            throw new IllegalArgumentException(DateUtil.format("Parser or DateFromat must be not null !"));
+        }
         boolean blank = true;
         // 判断的时候，并将cs的长度赋给了strLen
         if (dateStr != null && dateStr.length() != 0) {// 遍历字符

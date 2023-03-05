@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.lang.Assert;
-
 import java.time.DayOfWeek;
 import java.util.Calendar;
 
@@ -186,12 +184,7 @@ public enum Week {
         int result = -1;
         for (int i = 0; i < ALIASES.length; i++) {
             boolean result1;
-            if (null == name) {
-                // 字符串2空，字符串1非空，直接false
-                result1 = false;
-            } else {
-                result1 = ALIASES[i].equalsIgnoreCase(name);
-            }
+            result1 = ALIASES[i].equalsIgnoreCase(name);
             if (result1) {
                 result = i;
                 break;
@@ -220,7 +213,9 @@ public enum Week {
      * @since 5.7.14
      */
     public static Week of(DayOfWeek dayOfWeek) {
-        Assert.notNull(dayOfWeek, "[Assertion failed] - this argument is required; it must not be null");
+        if (null == dayOfWeek) {
+            throw new IllegalArgumentException(DateUtil.format("[Assertion failed] - this argument is required; it must not be null"));
+        }
         int week = dayOfWeek.getValue() + 1;
         if (8 == week) {
             // 周日

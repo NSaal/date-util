@@ -1,7 +1,6 @@
 package datetool.date;
 
 import datetool.date.format.*;
-import datetool.lang.Assert;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -1856,7 +1855,9 @@ public class DateUtil extends CalendarUtil {
      * @return 年龄
      */
     public static int age(Date birthday, Date dateToCompare) {
-        Assert.notNull(birthday, "Birthday can not be null !");
+        if (null == birthday) {
+            throw new IllegalArgumentException(format("Birthday can not be null !"));
+        }
         if (null == dateToCompare) {
             dateToCompare = date();
         }

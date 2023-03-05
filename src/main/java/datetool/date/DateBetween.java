@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.lang.Assert;
-
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,10 +42,14 @@ public class DateBetween implements Serializable {
 	 * @since 3.1.1
 	 */
 	public DateBetween(Date begin, Date end, boolean isAbs) {
-		Assert.notNull(begin, "Begin date is null !");
-		Assert.notNull(end, "End date is null !");
+        if (null == begin) {
+            throw new IllegalArgumentException(DateUtil.format("Begin date is null !"));
+        }
+        if (null == end) {
+            throw new IllegalArgumentException(DateUtil.format("End date is null !"));
+        }
 
-		if (isAbs && begin.after(end)) {
+        if (isAbs && begin.after(end)) {
 			// 间隔只为正数的情况下，如果开始日期晚于结束日期，置换之
 			this.begin = end;
 			this.end = begin;

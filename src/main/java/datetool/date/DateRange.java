@@ -1,7 +1,5 @@
 package datetool.date;
 
-import datetool.lang.Assert;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
@@ -85,8 +83,9 @@ public class DateRange  implements Iterable<DateTime>, Iterator<DateTime>, Seria
 	 * @param isIncludeEnd 是否包含结束的时间
 	 */
 	public DateRange(Date start, Date end, DateField unit, int step, boolean isIncludeStart, boolean isIncludeEnd) {
-
-		Assert.notNull(DateUtil.date(start), "First element must be not null!");
+		if (null == DateUtil.date(start)) {
+			throw new IllegalArgumentException(DateUtil.format("First element must be not null!"));
+		}
 		this.start = DateUtil.date(start);
 		this.end = DateUtil.date(end);
 		this.stepper = (current, end1, index) -> {
