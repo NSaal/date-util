@@ -4,11 +4,12 @@ import datetool.date.format.*;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Year;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -489,12 +490,6 @@ public class DateUtil extends CalendarUtil {
         if (null == date || result) {
             return null;
         }
-
-        // 检查自定义格式
-        if (GlobalCustomFormat.isCustomFormat(format)) {
-            return GlobalCustomFormat.format(date, format);
-        }
-
         TimeZone timeZone = null;
         if (date instanceof DateTime) {
             timeZone = ((DateTime) date).getTimeZone();
@@ -544,7 +539,16 @@ public class DateUtil extends CalendarUtil {
         }
         // java.time.temporal.UnsupportedTemporalTypeException: Unsupported field: YearOfEra
         // 出现以上报错时，表示Instant时间戳没有时区信息，赋予默认时区
-        return TemporalAccessorUtil.format(date.toInstant(), format);
+        Instant time = date.toInstant();
+        if (null == time) {
+            return null;
+        }
+        try {
+            return format.format(time);
+        } catch (UnsupportedTemporalTypeException e){
+            // 时间戳没有时区信息，赋予默认时区
+            return format.format(time.atZone(ZoneId.systemDefault()));
+        }
     }
 
     /**
@@ -561,7 +565,32 @@ public class DateUtil extends CalendarUtil {
         }
         // java.time.temporal.UnsupportedTemporalTypeException: Unsupported field: YearOfEra
         // 出现以上报错时，表示Instant时间戳没有时区信息，赋予默认时区
-        return TemporalAccessorUtil.format(date.toInstant(), format.getValue());
+        Instant time = date.toInstant();
+        String format1 = format.getValue();
+        if (null == time) {
+            return null;
+        }
+        boolean isBlank = true;
+        // 判断的时候，并将cs的长度赋给了strLen
+        if (format1 != null && ((CharSequence) format1).length() != 0) {// 遍历字符
+            for (int i = 0; i < ((CharSequence) format1).length(); i++) {
+                if (!Character.isWhitespace(((CharSequence) format1).charAt(i))) {
+                    isBlank = false;
+                    break;
+                }
+            }
+        }
+        DateTimeFormatter formatter1 = isBlank
+                ? null : DateTimeFormatter.ofPattern(format1);
+        if(null == formatter1){
+            formatter1 = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        }
+        try {
+            return formatter1.format(time);
+        } catch (UnsupportedTemporalTypeException e){
+            // 时间戳没有时区信息，赋予默认时区
+            return formatter1.format(time.atZone(ZoneId.systemDefault()));
+        }
     }
 
     /**
@@ -712,10 +741,6 @@ public class DateUtil extends CalendarUtil {
      * @since 4.5.18
      */
     public static DateTime parse(CharSequence dateStr, String format, Locale locale) {
-        if (GlobalCustomFormat.isCustomFormat(format)) {
-            // 自定义格式化器忽略Locale
-            return new DateTime(GlobalCustomFormat.parse(dateStr, format));
-        }
         return new DateTime(dateStr, DateUtil.newSimpleFormat(format, locale, null));
     }
 
@@ -2168,7 +2193,83 @@ public class DateUtil extends CalendarUtil {
      * @since 5.0.2
      */
     public static Instant toInstant(TemporalAccessor temporalAccessor) {
-        return TemporalAccessorUtil.toInstant(temporalAccessor);
+        if (null == temporalAccessor) {
+            return null;
+        }
+
+        Instant result;
+        if (temporalAccessor instanceof Instant) {
+            result = (Instant) temporalAccessor;
+        } else if (temporalAccessor instanceof LocalDateTime) {
+            result = ((LocalDateTime) temporalAccessor).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (temporalAccessor instanceof ZonedDateTime) {
+            result = ((ZonedDateTime) temporalAccessor).toInstant();
+        } else if (temporalAccessor instanceof OffsetDateTime) {
+            result = ((OffsetDateTime) temporalAccessor).toInstant();
+        } else if (temporalAccessor instanceof LocalDate) {
+            result = ((LocalDate) temporalAccessor).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        } else if (temporalAccessor instanceof LocalTime) {
+            // 指定本地时间转换 为Instant，取当天日期
+            result = ((LocalTime) temporalAccessor).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant();
+        } else if (temporalAccessor instanceof OffsetTime) {
+            // 指定本地时间转换 为Instant，取当天日期
+            result = ((OffsetTime) temporalAccessor).atDate(LocalDate.now()).toInstant();
+        } else {
+            // issue#1891@Github
+            // Instant.from不能完成日期转换
+            //result = Instant.from(temporalAccessor);
+            int result1;
+            if (temporalAccessor.isSupported(ChronoField.NANO_OF_SECOND)) {
+                result1 = temporalAccessor.get(ChronoField.NANO_OF_SECOND);
+            } else {
+                result1 = (int) ((TemporalField) ChronoField.NANO_OF_SECOND).range().getMinimum();
+            }
+
+            int result2;
+            if (temporalAccessor.isSupported(ChronoField.SECOND_OF_MINUTE)) {
+                result2 = temporalAccessor.get(ChronoField.SECOND_OF_MINUTE);
+            } else {
+                result2 = (int) ((TemporalField) ChronoField.SECOND_OF_MINUTE).range().getMinimum();
+            }
+
+            int result3;
+            if (temporalAccessor.isSupported(ChronoField.MINUTE_OF_HOUR)) {
+                result3 = temporalAccessor.get(ChronoField.MINUTE_OF_HOUR);
+            } else {
+                result3 = (int) ((TemporalField) ChronoField.MINUTE_OF_HOUR).range().getMinimum();
+            }
+
+            int result4;
+            if (temporalAccessor.isSupported(ChronoField.HOUR_OF_DAY)) {
+                result4 = temporalAccessor.get(ChronoField.HOUR_OF_DAY);
+            } else {
+                result4 = (int) ((TemporalField) ChronoField.HOUR_OF_DAY).range().getMinimum();
+            }
+
+            int result5;
+            if (temporalAccessor.isSupported(ChronoField.DAY_OF_MONTH)) {
+                result5 = temporalAccessor.get(ChronoField.DAY_OF_MONTH);
+            } else {
+                result5 = (int) ((TemporalField) ChronoField.DAY_OF_MONTH).range().getMinimum();
+            }
+
+            int result6;
+            if (temporalAccessor.isSupported(ChronoField.MONTH_OF_YEAR)) {
+                result6 = temporalAccessor.get(ChronoField.MONTH_OF_YEAR);
+            } else {
+                result6 = (int) ((TemporalField) ChronoField.MONTH_OF_YEAR).range().getMinimum();
+            }
+
+            int result7;
+            if (temporalAccessor.isSupported(ChronoField.YEAR)) {
+                result7 = temporalAccessor.get(ChronoField.YEAR);
+            } else {
+                result7 = (int) ((TemporalField) ChronoField.YEAR).range().getMinimum();
+            }
+
+            result = toInstant(LocalDateTime.of(result7, result6, result5, result4, result3, result2, result1));
+        }
+        return result;
     }
 
     /**

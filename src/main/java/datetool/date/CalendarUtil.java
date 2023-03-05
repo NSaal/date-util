@@ -2,7 +2,6 @@ package datetool.date;
 
 import datetool.date.format.DateParser;
 import datetool.date.format.FastDateParser;
-import datetool.date.format.GlobalCustomFormat;
 
 import java.text.ParsePosition;
 import java.time.Instant;
@@ -740,15 +739,6 @@ public class CalendarUtil {
         calendar.setLenient(lenient);
 
         for (final String parsePattern : parsePatterns) {
-            if (GlobalCustomFormat.isCustomFormat(parsePattern)) {
-                final Date parse = GlobalCustomFormat.parse(str, parsePattern);
-                if (null == parse) {
-                    continue;
-                }
-                calendar.setTime(parse);
-                return calendar;
-            }
-
             final FastDateParser fdp = new FastDateParser(parsePattern, tz, lcl);
             calendar.clear();
             try {

@@ -3,7 +3,6 @@ package datetool.date;
 import datetool.date.format.DateParser;
 import datetool.date.format.DatePrinter;
 import datetool.date.format.FastDateFormat;
-import datetool.date.format.GlobalCustomFormat;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -187,7 +186,7 @@ public class DateTime extends Date {
      * @since 5.0.0
      */
     public DateTime(TemporalAccessor temporalAccessor) {
-        this(TemporalAccessorUtil.toInstant(temporalAccessor));
+        this(DateUtil.toInstant(temporalAccessor));
     }
 
 
@@ -260,9 +259,7 @@ public class DateTime extends Date {
      * @see DatePattern
      */
     public DateTime(CharSequence dateStr, String format) {
-        this(GlobalCustomFormat.isCustomFormat(format)
-                ? GlobalCustomFormat.parse(dateStr, format)
-                : parse(dateStr, DateUtil.newSimpleFormat(format)));
+        this(parse(dateStr, DateUtil.newSimpleFormat(format)));
     }
 
     /**
