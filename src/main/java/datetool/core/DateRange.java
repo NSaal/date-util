@@ -1,4 +1,7 @@
-package datetool.date;
+package datetool.core;
+
+import datetool.DateUtil;
+import datetool.core.enums.DateField;
 
 import java.io.Serializable;
 import java.util.Date;

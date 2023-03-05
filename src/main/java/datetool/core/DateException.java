@@ -1,4 +1,6 @@
-package datetool.date;
+package datetool.core;
+
+import datetool.DateUtil;
 
 /**
  * 工具类异常

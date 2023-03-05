@@ -1,6 +1,6 @@
-package datetool.date.format;
+package datetool.core.format;
 
-import datetool.date.DateException;
+import datetool.core.DateException;
 
 import java.io.IOException;
 import java.text.DateFormatSymbols;

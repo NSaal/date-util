@@ -1,6 +1,6 @@
-package datetool.date.format;
+package datetool.core.format;
 
-import datetool.date.DateUtil;
+import datetool.DateUtil;
 
 import java.text.*;
 import java.util.Calendar;

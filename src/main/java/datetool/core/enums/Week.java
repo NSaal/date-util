@@ -1,4 +1,6 @@
-package datetool.date;
+package datetool.core.enums;
+
+import datetool.DateUtil;
 
 import java.time.DayOfWeek;
 import java.util.Calendar;

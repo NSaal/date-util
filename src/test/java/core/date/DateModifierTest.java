@@ -1,9 +1,9 @@
 package core.date;
 
-import datetool.date.DateField;
-import datetool.date.DatePattern;
-import datetool.date.DateTime;
-import datetool.date.DateUtil;
+import datetool.core.enums.DateField;
+import datetool.core.DatePattern;
+import datetool.core.DateTime;
+import datetool.DateUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

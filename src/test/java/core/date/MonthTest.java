@@ -1,6 +1,6 @@
 package core.date;
 
-import datetool.date.Month;
+import datetool.core.enums.Month;
 import org.junit.Assert;
 import org.junit.Test;
 

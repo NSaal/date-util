@@ -1,10 +1,10 @@
-package datetool.date.format;
+package datetool.core.format;
 
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public abstract class AbstractDateBasic implements DateBasic, Serializable {
+public abstract class AbstractDateBasic implements  Serializable {
 	private static final long serialVersionUID = 6333136319870641818L;
 
 	/** The pattern */
@@ -27,17 +27,15 @@ public abstract class AbstractDateBasic implements DateBasic, Serializable {
 	}
 
 	// ----------------------------------------------------------------------- Accessors
-	@Override
+
 	public String getPattern() {
 		return pattern;
 	}
 
-	@Override
 	public TimeZone getTimeZone() {
 		return timeZone;
 	}
 
-	@Override
 	public Locale getLocale() {
 		return locale;
 	}

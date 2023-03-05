@@ -1,6 +1,6 @@
-package datetool.date;
+package datetool.core;
 
-import datetool.date.format.FastDateFormat;
+import datetool.core.format.FastDateFormat;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;

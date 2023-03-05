@@ -1,16 +1,18 @@
-package datetool.date.format;
+package datetool.core.format;
 
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * 日期解析接口，用于解析日期字符串为 {@link Date} 对象<br>
  * Thanks to Apache Commons Lang 3.5
  * @since 2.16.2
  */
-public interface DateParser extends DateBasic{
+public interface DateParser {
 
 	/**
 	 * 将日期字符串解析并转换为  {@link Date} 对象<br>
@@ -57,4 +59,10 @@ public interface DateParser extends DateBasic{
 	default Object parseObject(String source, ParsePosition pos){
 		return parse(source, pos);
 	}
+
+    String getPattern();
+
+    TimeZone getTimeZone();
+
+    Locale getLocale();
 }

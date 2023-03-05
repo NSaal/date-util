@@ -1,7 +1,9 @@
-package datetool.date.format;
+package datetool.core.format;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * 日期格式化输出接口<br>
@@ -9,7 +11,7 @@ import java.util.Date;
  * @author Looly
  * @since 2.16.2
  */
-public interface DatePrinter extends DateBasic {
+public interface DatePrinter  {
 
 	/**
 	 * 格式化日期表示的毫秒数
@@ -75,4 +77,10 @@ public interface DatePrinter extends DateBasic {
 	 * @return the specified string buffer
 	 */
 	<B extends Appendable> B format(Calendar calendar, B buf);
+
+    String getPattern();
+
+    TimeZone getTimeZone();
+
+    Locale getLocale();
 }

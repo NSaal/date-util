@@ -1,4 +1,6 @@
-package datetool.date;
+package datetool.core;
+
+import datetool.core.enums.DateUnit;
 
 import java.io.Serializable;
 
@@ -71,7 +73,7 @@ public class BetweenFormatter implements Serializable {
 			final int level = this.level.ordinal();
 			int levelCount = 0;
 
-			if (isLevelCountValid(levelCount) && 0 != day && level >= Level.DAY.ordinal()) {
+			if (isLevelCountValid(levelCount) && 0 != day) {
 				sb.append(day).append(Level.DAY.name);
 				levelCount++;
 			}
@@ -93,7 +95,7 @@ public class BetweenFormatter implements Serializable {
 			}
 		}
 
-        if (sb == null || ((CharSequence) sb).length() == 0) {
+        if (((CharSequence) sb).length() == 0) {
 			sb.append(0).append(this.level.name);
 		}
 

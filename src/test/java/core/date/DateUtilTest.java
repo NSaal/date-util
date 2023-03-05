@@ -1,8 +1,12 @@
 package core.date;
 
-import datetool.date.BetweenFormatter.Level;
-import datetool.date.*;
-import datetool.date.format.FastDateFormat;
+import datetool.DateUtil;
+import datetool.core.BetweenFormatter.Level;
+import datetool.core.*;
+import datetool.core.enums.DateField;
+import datetool.core.enums.DateUnit;
+import datetool.core.enums.Week;
+import datetool.core.format.FastDateFormat;
 import org.junit.Assert;
 import org.junit.Test;
 

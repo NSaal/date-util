@@ -1,8 +1,8 @@
 package core.date;
 
-import datetool.date.BetweenFormatter.Level;
-import datetool.date.DateBetween;
-import datetool.date.DateUtil;
+import datetool.core.BetweenFormatter.Level;
+import datetool.core.DateBetween;
+import datetool.DateUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

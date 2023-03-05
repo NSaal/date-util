@@ -1,4 +1,4 @@
-package datetool.date;
+package datetool.core.enums;
 
 import java.time.temporal.ChronoUnit;
 

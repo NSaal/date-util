@@ -1,4 +1,4 @@
-package datetool.date.format;
+package datetool.core.format;
 
 public enum DateStyle {
 

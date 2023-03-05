@@ -1,6 +1,6 @@
 package core.date;
 
-import datetool.date.Week;
+import datetool.core.enums.Week;
 import org.junit.Assert;
 import org.junit.Test;
 

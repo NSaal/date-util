@@ -1,6 +1,6 @@
 package core.date;
 
-import datetool.date.DateUtil;
+import datetool.DateUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

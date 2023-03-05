@@ -4,4 +4,4 @@
  * @author looly
  *
  */
-package datetool.date;
+package datetool.core;

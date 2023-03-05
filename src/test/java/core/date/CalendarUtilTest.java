@@ -1,8 +1,8 @@
 package core.date;
 
-import datetool.date.CalendarUtil;
-import datetool.date.DatePattern;
-import datetool.date.DateUtil;
+import datetool.core.CalendarUtil;
+import datetool.core.DatePattern;
+import datetool.DateUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

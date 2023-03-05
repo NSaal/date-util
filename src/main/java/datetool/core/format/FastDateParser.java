@@ -1,4 +1,4 @@
-package datetool.date.format;
+package datetool.core.format;
 
 import java.text.DateFormatSymbols;
 import java.text.ParseException;

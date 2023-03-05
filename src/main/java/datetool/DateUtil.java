@@ -1,6 +1,11 @@
-package datetool.date;
+package datetool;
 
-import datetool.date.format.*;
+import datetool.core.*;
+import datetool.core.enums.DateField;
+import datetool.core.enums.DateUnit;
+import datetool.core.enums.Quarter;
+import datetool.core.enums.Week;
+import datetool.core.format.*;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -211,9 +216,9 @@ public class DateUtil extends CalendarUtil {
      * 获得月份
      *
      * @param date 日期
-     * @return {@link Month}
+     * @return {@link datetool.core.enums.Month}
      */
-    public static Month monthEnum(Date date) {
+    public static datetool.core.enums.Month monthEnum(Date date) {
         return DateTime.of(date).monthEnum();
     }
 
@@ -372,9 +377,9 @@ public class DateUtil extends CalendarUtil {
     }
 
     /**
-     * @return 当前月份 {@link Month}
+     * @return 当前月份 {@link datetool.core.enums.Month}
      */
-    public static Month thisMonthEnum() {
+    public static datetool.core.enums.Month thisMonthEnum() {
         return monthEnum(date());
     }
 
